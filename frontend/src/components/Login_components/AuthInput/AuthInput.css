@@ -1,0 +1,24 @@
+.phone-container {
+  width: 100%;
+}
+
+.phone-input {
+  width: 100% !important;
+  height: 48px !important;
+  background-color: #111b21 !important;
+  color: white !important;
+  border-radius: 0.5rem !important;
+  border: 2px solid #4b5563 !important;
+  padding-left: 60px !important;
+}
+
+.phone-input:focus {
+  border-color: #22c55e !important;
+  box-shadow: none !important;
+}
+
+.phone-flag-button {
+  background-color: #111b21 !important;
+  border: 1px solid #4b5563 !important;
+  border-radius: 0.5rem 0 0 0.5rem !important;
+}

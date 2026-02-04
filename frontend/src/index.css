@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+/* Background gradient */
+.bg-auth-gradient {
+  background: radial-gradient(circle at top, #1f2c25, #0b141a 70%);
+}
+
+/* Reusable input style */
+.auth-input {
+  @apply w-full rounded-lg bg-[#111b21] px-4 py-3 text-sm text-white
+         outline-none ring-1 ring-gray-700
+         focus:ring-2 focus:ring-green-500;
+}

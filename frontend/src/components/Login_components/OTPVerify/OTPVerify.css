@@ -1,0 +1,15 @@
+.otp-box {
+  width: 44px;
+  height: 48px;
+  text-align: center;
+  font-size: 18px;
+  border-radius: 8px;
+  background-color: #111b21;
+  color: white;
+  outline: none;
+  border: 1px solid #4b5563;
+}
+
+.otp-box:focus {
+  border-color: #22c55e;
+}
