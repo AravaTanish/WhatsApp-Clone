@@ -5,6 +5,7 @@ import ProfileSetup from "../components/Login_components/ProfileSetup/ProfileSet
 import useAuthStore from "../store/authStore.js";
 import api from "../api/axios.js";
 import Loading from "../components/LoadingScreen/Loading.jsx";
+import toast from "react-hot-toast";
 
 function Login() {
   const [sendOtpLoading, setSendOtpLoading] = useState(false);
@@ -14,17 +15,18 @@ function Login() {
 
   const handelSendOTP = async () => {
     setSendOtpLoading(true);
-    await api
-      .post("/login", { email })
-      .then((response) => {
-        if (response.data.success === true) {
-          setStep("OTP");
-          setSendOtpLoading(false);
-        }
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    try {
+      const response = await api.post("/login", { email });
+      if (response.data.success) {
+        setStep("OTP");
+        toast.success(response.data.message);
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error(error.response.data.message);
+    } finally {
+      setSendOtpLoading(false);
+    }
   };
 
   if (sendOtpLoading) {
@@ -38,21 +40,21 @@ function Login() {
   }
 
   const handelVerify = async (otp) => {
-    setVerifyLoading(true);
-    await api
-      .post("/login/verify", { email, otp })
-      .then((response) => {
-        if (response.data.success === true) {
-          const accessToken = response.data.accessToken;
-          localStorage.setItem("token", accessToken);
-          setStep("PROFILE");
-          setVerifyLoading(false);
-        }
-      })
-      .catch((error) => {
-        console.log("no res");
-        console.log(error);
-      });
+    try {
+      setVerifyLoading(true);
+      const response = await api.post("/login/verify", { email, otp });
+      if (response.data.success === true) {
+        const accessToken = response.data.accessToken;
+        localStorage.setItem("token", accessToken);
+        setStep("PROFILE");
+        toast.success(response.data.message);
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error(error.response.data.message);
+    } finally {
+      setVerifyLoading(false);
+    }
   };
 
   if (verifyLoading) {
@@ -60,23 +62,20 @@ function Login() {
   }
 
   const handelResend = async () => {
-    setSendOtpLoading(true);
-    await api
-      .put("/login/resend-otp", { email })
-      .then((response) => {
-        console.log(response);
-        if (response.data.success === true) {
-          setStep("OTP");
-          setSendOtpLoading(false);
-        }
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-  };
-
-  const goInput = () => {
-    setStep("INPUT");
+    try {
+      setSendOtpLoading(true);
+      const response = await api.put("/login/resend-otp", { email });
+      if (response.data.success === true) {
+        setStep("OTP");
+        setSendOtpLoading(false);
+        toast.success(response.data.message);
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error(error.response.data.message);
+    } finally {
+      setSendOtpLoading(false);
+    }
   };
 
   return (
@@ -85,7 +84,7 @@ function Login() {
       {step === "OTP" && (
         <OTPVerify handelVerify={handelVerify} handelResend={handelResend} />
       )}
-      {step === "PROFILE" && <ProfileSetup goInput={goInput} />}
+      {step === "PROFILE" && <ProfileSetup />}
     </>
   );
 }

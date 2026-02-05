@@ -173,37 +173,42 @@ export const userIdGeneration = async (req, res) => {
     const id = req.user.userId;
 
     const user = await User.findById(id);
-    const photoURL = user.profilePicture.url;
-    const about = user.about;
+
     if (!user) {
       return res
         .status(400)
         .json({ success: false, message: "User not found" });
     }
 
-    let userId = "";
+    const photoURL = user.profilePicture?.url || "";
+    const about = user.about || "";
+
+    // User already has a username
     if (user.userId) {
-      userId = user.userId;
       return res.status(200).json({
         success: true,
-        userId: userId,
-        photoURL: photoURL,
-        about: about,
+        userId: user.userId,
+        photoURL,
+        about,
         change: false,
         message: "User already exists, you cannot change your username now",
       });
     }
+
+    // Generate new username
     const email = user.email;
-    userId = await generateUniqueUsername(email);
+    const newUserId = await generateUniqueUsername(email);
 
     return res.status(200).json({
       success: true,
-      userId: userId,
+      userId: newUserId,
+      photoURL,
+      about,
       change: true,
       message: "Username generated successfully",
     });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return res
       .status(400)
       .json({ success: false, message: "Username generation failed." });

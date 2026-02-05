@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import api from "../../../api/axios.js";
 import { TfiReload } from "react-icons/tfi";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 function ProfileSetup() {
   const DEFAULT_AVATAR = import.meta.env.VITE_DEFAULT_AVATAR;
@@ -27,15 +28,18 @@ function ProfileSetup() {
           setUserId(response.data.userId);
           if (response.data.change === true) {
             setCanChange(true);
+            toast.success(response.data.message);
           } else {
-            setImageFile()
+            setImageFile();
             setCanChange(false);
+            setPhotoURL(response.data.photoURL);
             setPreview(response.data.photoURL);
             setAbout(response.data.about);
           }
         }
       } catch (error) {
         console.log(error);
+        toast.error(error.response.data.message);
       }
     };
 
@@ -46,19 +50,16 @@ function ProfileSetup() {
   useEffect(() => {
     const handelChecking = async () => {
       try {
-        await api
-          .post("/login/check-userId", { userId: userId })
-          .then((response) => {
-            if (response.data.success === true) {
-              setMessage(response.data.message);
-              if (response.data.valid === true) {
-                setIsValid(true);
-              } else setIsValid(false);
-            }
-          })
-          .catch((error) => {
-            console.log(error);
-          });
+        const response = await api.post("/login/check-userId", {
+          userId: userId,
+        });
+
+        if (response.data.success === true) {
+          setMessage(response.data.message);
+          if (response.data.valid === true) {
+            setIsValid(true);
+          } else setIsValid(false);
+        }
       } catch (error) {
         console.log(error);
       }
@@ -68,6 +69,7 @@ function ProfileSetup() {
 
   //For profile photo upload in cloudinary
   useEffect(() => {
+    if (!imageFile) return;
     const handelUploadPhoto = async () => {
       try {
         const formData = new FormData();
@@ -76,25 +78,21 @@ function ProfileSetup() {
         }
         formData.append("defaultPhoto", DEFAULT_AVATAR);
 
-        await api
-          .post("/user/profile-photo", formData)
-          .then((response) => {
-            if (response.data.success && response.data.photoURL) {
-              setPhotoURL(response.data.photoURL);
-              console.log("Uploaded");
-            } else {
-              setPhotoURL(DEFAULT_AVATAR);
-            }
-          })
-          .catch((error) => {
-            console.log(error);
-          });
+        const response = await api.post("/user/profile-photo", formData);
+        if (response.data.success && response.data.photoURL) {
+          setPhotoURL(response.data.photoURL);
+          console.log("Uploaded");
+          toast.success(response.data.message);
+        } else {
+          setPhotoURL(DEFAULT_AVATAR);
+        }
       } catch (error) {
         console.log(error);
+        toast.error(error.response.data.message);
       }
     };
     handelUploadPhoto();
-  }, [imageFile, DEFAULT_AVATAR]);
+  }, [imageFile]);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -107,41 +105,39 @@ function ProfileSetup() {
   const handleRemovePhoto = async () => {
     setImageFile(null);
     setPreview(null);
+    setPhotoURL(null);
+
     //if we upload 1.img and removed it again upload 1.img it doesnot show because ref not cleared so remove ref thats why this condition
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
     try {
-      await api
-        .delete("/user/profile-photo", {})
-        .then((response) => {
-          if (response.data.success) {
-            console.log("Removed");
-          }
-        })
-        .catch((error) => {
-          console.log(error);
-        });
+      const response = await api.delete("/user/profile-photo", {});
+      if (response.data.success) {
+        console.log("Removed");
+        toast.success(response.data.message);
+      }
     } catch (error) {
       console.log(error);
+      toast.error(error.response.data.message);
     }
   };
 
   const handleComplete = async () => {
     try {
-      await api
-        .post("/login/complete", { photoURL, userId, about })
-        .then((response) => {
-          if (response.data.success) {
-            console.log("User login completed");
-            navigate("/chat");
-          }
-        })
-        .catch((error) => {
-          console.log(error);
-        });
+      const response = await api.post("/login/complete", {
+        photoURL,
+        userId,
+        about,
+      });
+      if (response.data.success) {
+        console.log("User login completed");
+        navigate("/chat");
+        toast.success(response.data.message);
+      }
     } catch (error) {
       console.log(error);
+      toast.error(error.response.data.message);
     }
   };
 
@@ -159,7 +155,7 @@ function ProfileSetup() {
                rounded-full border border-gray-500 overflow-hidden"
           >
             <img
-              src={preview ? preview : DEFAULT_AVATAR}
+              src={preview || photoURL || DEFAULT_AVATAR}
               alt="profile preview"
               className="h-full w-full object-cover"
             />
