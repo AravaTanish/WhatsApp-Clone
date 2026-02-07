@@ -3,6 +3,7 @@ import express from "express";
 import connectDB from "./config/dbConnect.js";
 import authRoutes from "./routes/auth.routes.js";
 import uploadRoutes from "./routes/upload.routes.js";
+import logoutRouter from "./routes/logout.routes.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 
@@ -19,6 +20,7 @@ app.use(express.json());
 
 // Routes
 app.use("/backend/login", authRoutes);
+app.use("/backend/logout", logoutRouter);
 app.use("/backend/user", uploadRoutes);
 
 connectDB();
