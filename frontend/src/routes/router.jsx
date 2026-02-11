@@ -8,8 +8,9 @@ import App from "../App";
 import Login from "../pages/Login";
 import Chat from "../pages/Chat";
 
-import PrivateRoute from "./PrivateRoute";
-import PublicRoute from "./PublicRoute";
+import PrivateRoute from "./PrivateRoute.jsx";
+import PublicRoute from "./PublicRoute.jsx";
+import ProfileSetup from "../pages/ProfileSetup.jsx";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -20,6 +21,15 @@ const router = createBrowserRouter(
           <PublicRoute>
             <Login />
           </PublicRoute>
+        }
+      />
+
+      <Route
+        path="profile-setup"
+        element={
+          <PrivateRoute>
+            <ProfileSetup />
+          </PrivateRoute>
         }
       />
 

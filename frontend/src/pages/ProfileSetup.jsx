@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import api from "../../../api/axios.js";
+import api from "../api/axios.js";
 import { TfiReload } from "react-icons/tfi";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";

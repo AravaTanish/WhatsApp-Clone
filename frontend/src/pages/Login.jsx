@@ -1,17 +1,18 @@
 import { useState } from "react";
 import AuthInput from "../components/Login_components/AuthInput/AuthInput.jsx";
 import OTPVerify from "../components/Login_components/OTPVerify/OTPVerify.jsx";
-import ProfileSetup from "../components/Login_components/ProfileSetup/ProfileSetup.jsx";
 import useAuthStore from "../store/authStore.js";
 import api from "../api/axios.js";
 import Loading from "../components/LoadingScreen/Loading.jsx";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 function Login() {
   const [sendOtpLoading, setSendOtpLoading] = useState(false);
   const [verifyLoading, setVerifyLoading] = useState(false);
   const [step, setStep] = useState("INPUT");
   const { email } = useAuthStore();
+  const navigate = useNavigate();
 
   const handelSendOTP = async () => {
     setSendOtpLoading(true);
@@ -46,7 +47,10 @@ function Login() {
       if (response.data.success === true) {
         const accessToken = response.data.accessToken;
         localStorage.setItem("token", accessToken);
-        setStep("PROFILE");
+        if(response.data.isCompleted === true) {
+          navigate("/chat");
+        }
+        else navigate("/profile-setup");;
         toast.success(response.data.message);
       }
     } catch (error) {
@@ -84,7 +88,6 @@ function Login() {
       {step === "OTP" && (
         <OTPVerify handelVerify={handelVerify} handelResend={handelResend} />
       )}
-      {step === "PROFILE" && <ProfileSetup />}
     </>
   );
 }

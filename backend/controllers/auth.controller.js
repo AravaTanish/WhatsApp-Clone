@@ -113,6 +113,7 @@ export const verify = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "User verified successfully",
+      isCompleted: user.isCompleted,
       accessToken,
       user: {
         id: user._id,
@@ -247,24 +248,55 @@ export const checkUserId = async (req, res) => {
 };
 
 export const complete = async (req, res) => {
-  const { photoURL, userId, about } = req.body;
-  const id = req.user.userId;
+  try {
+    const { photoURL, userId, about } = req.body;
+    const id = req.user.userId;
 
-  const user = await User.findById(id);
-  if (!user) {
-    return res.status(400).json({ success: false, message: "User not found" });
+    const user = await User.findById(id);
+    if (!user) {
+      return res
+        .status(400)
+        .json({ success: false, message: "User not found" });
+    }
+
+    user.profilePicture.url = photoURL;
+    user.profilePicture.publicId = id;
+    user.userId = userId;
+    user.about = about;
+    user.isCompleted = true;
+
+    await user.save();
+
+    return res
+      .status(200)
+      .json({ success: true, message: "Profile setup completed" });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: "Server Erorr" });
   }
+};
 
-  user.profilePicture.url = photoURL;
-  user.profilePicture.publicId = id;
-  user.userId = userId;
-  user.about = about;
-
-  await user.save();
-
-  return res
-    .status(200)
-    .json({ success: true, message: "User login completed" });
+export const me = async (req, res) => {
+  try {
+    const id = req.user.userId;
+    const user = await User.findById(id);
+    if (!user) {
+      return res
+        .status(400)
+        .json({ success: false, message: "User not found" });
+    }
+    return res.status(200).json({
+      success: true,
+      message: "User details fetched",
+      userId: user.userId,
+      id: user._id,
+      email: user.email,
+      isCompleted: user.isCompleted,
+    });
+  } catch (error) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Failed to get user details" });
+  }
 };
 
 export const refresh = async (req, res) => {

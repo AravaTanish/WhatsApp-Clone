@@ -38,6 +38,11 @@ const userSchema = new mongoose.Schema(
       default: false,
     },
 
+    isCompleted: {
+      type: Boolean,
+      default: false,
+    },
+
     profilePicture: {
       url: String,
       publicId: String,
