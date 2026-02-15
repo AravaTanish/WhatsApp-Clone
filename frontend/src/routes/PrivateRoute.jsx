@@ -1,39 +1,17 @@
 import { Navigate } from "react-router-dom";
-import { useEffect, useState } from "react";
-import api from "../api/axios";
-import Loading from "../components/LoadingScreen/Loading";
+import useUserStore from "../store/userStore.js";
+import Loading from "../components/LoadingScreen/Loading.jsx";
 
 const PrivateRoute = ({ children }) => {
-  const token = localStorage.getItem("token");
-  const [authStatus, setAuthStatus] = useState(null);
+  const { user, loading } = useUserStore();
 
-  useEffect(() => {
-    const verifyUser = async () => {
-      if (!token) {
-        setAuthStatus(false);
-        return;
-      }
-      try {
-        const response = await api.get("/login/me");
-
-        if (response.data.success) {
-          setAuthStatus(true);
-        } else {
-          setAuthStatus(false);
-        }
-      } catch {
-        setAuthStatus(false);
-      }
-    };
-
-    verifyUser();
-  }, [token]);
-
-  if (authStatus === null) {
+  // Still checking auth
+  if (loading) {
     return <Loading message="Checking authentication..." />;
   }
 
-  if (!authStatus) {
+  // Not logged in
+  if (!user) {
     return <Navigate to="/login" replace />;
   }
 

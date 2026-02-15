@@ -115,10 +115,9 @@ export const verify = async (req, res) => {
       message: "User verified successfully",
       isCompleted: user.isCompleted,
       accessToken,
-      user: {
-        id: user._id,
-        email: user.email,
-      },
+      email: user.email,
+      userId: user.userId ? user.userId : "No userId",
+      id: user._id,
     });
   } catch (err) {
     res.status(500).json({ success: false, message: "Server error" });
@@ -269,7 +268,14 @@ export const complete = async (req, res) => {
 
     return res
       .status(200)
-      .json({ success: true, message: "Profile setup completed" });
+      .json({
+        success: true,
+        userId: user.userId,
+        id: user._id,
+        email: user.email,
+        isCompleted: user.isCompleted,
+        message: "Profile setup completed",
+      });
   } catch (error) {
     return res.status(400).json({ success: false, message: "Server Erorr" });
   }

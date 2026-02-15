@@ -48,7 +48,6 @@ api.interceptors.response.use(
       } catch (err) {
         // refresh token expired or invalid
         localStorage.removeItem("token");
-        window.location.href = "/login";
         return Promise.reject(err);
       }
     }

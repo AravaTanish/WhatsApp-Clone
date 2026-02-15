@@ -3,6 +3,7 @@ import api from "../api/axios.js";
 import { TfiReload } from "react-icons/tfi";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import useUserStore from "../store/userStore.js";
 
 function ProfileSetup() {
   const DEFAULT_AVATAR = import.meta.env.VITE_DEFAULT_AVATAR;
@@ -16,6 +17,8 @@ function ProfileSetup() {
   const [isValid, setIsValid] = useState(false);
   const [about, setAbout] = useState("");
   const [photoURL, setPhotoURL] = useState(DEFAULT_AVATAR);
+
+  const setUser = useUserStore((state) => state.setUser);
   const navigate = useNavigate();
 
   // For userId generation
@@ -131,8 +134,15 @@ function ProfileSetup() {
         about,
       });
       if (response.data.success) {
+        const { userId, id, email, isCompleted } = response.data;
+        setUser({
+          userId,
+          id,
+          email,
+          isCompleted,
+        });
         console.log("User login completed");
-        navigate("/chat");
+        navigate("/chat", { replace: true });
         toast.success(response.data.message);
       }
     } catch (error) {
@@ -239,10 +249,11 @@ function ProfileSetup() {
 
         {/* Complete */}
         <button
+          disabled={userId.length < 3 || !isValid}
           onClick={handleComplete}
-          className="mt-6 w-full rounded-lg bg-green-600 py-3
+          className={`mt-6 w-full rounded-lg bg-green-600 py-3
                      text-sm sm:text-base font-medium text-black
-                     hover:bg-green-500 transition"
+                     hover:bg-green-500 transition ${userId.length < 3 || !isValid ? "cursor-not-allowed opacity-80" : "hover:bg-green-500 transition"}`}
         >
           Complete
         </button>
