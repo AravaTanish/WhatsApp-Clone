@@ -11,7 +11,6 @@ function ProfileSetup() {
   const [preview, setPreview] = useState(null);
   const fileInputRef = useRef(null);
   const [userId, setUserId] = useState("");
-  const [generateUsername, setGenerateUsername] = useState(false);
   const [canChange, setCanChange] = useState(false);
   const [message, setMessage] = useState("");
   const [isValid, setIsValid] = useState(false);
@@ -22,32 +21,31 @@ function ProfileSetup() {
   const navigate = useNavigate();
 
   // For userId generation
-  useEffect(() => {
-    const handleGenerateUsername = async () => {
-      try {
-        const response = await api.post("/login/userId-generation", {});
+  const handleGenerateUsername = async () => {
+    try {
+      const response = await api.post("/login/userId-generation", {});
 
-        if (response.data.success && response.data.userId) {
-          setUserId(response.data.userId);
-          if (response.data.change === true) {
-            setCanChange(true);
-            toast.success(response.data.message);
-          } else {
-            setImageFile();
-            setCanChange(false);
-            setPhotoURL(response.data.photoURL);
-            setPreview(response.data.photoURL);
-            setAbout(response.data.about);
-          }
+      if (response.data.success && response.data.userId) {
+        setUserId(response.data.userId);
+        if (response.data.change === true) {
+          setCanChange(true);
+          toast.success(response.data.message);
+        } else {
+          setImageFile();
+          setCanChange(false);
+          setPhotoURL(response.data.photoURL);
+          setPreview(response.data.photoURL);
+          setAbout(response.data.about);
         }
-      } catch (error) {
-        console.log(error);
-        toast.error(error.response.data.message);
       }
-    };
-
+    } catch (error) {
+      console.log(error);
+      toast.error(error.response.data.message);
+    }
+  };
+  useEffect(() => {
     handleGenerateUsername();
-  }, [generateUsername]);
+  }, []);
 
   // For userId checking
   useEffect(() => {
@@ -95,7 +93,7 @@ function ProfileSetup() {
       }
     };
     handelUploadPhoto();
-  }, [imageFile]);
+  }, [imageFile, DEFAULT_AVATAR]);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -217,9 +215,7 @@ function ProfileSetup() {
             <button
               disabled={!canChange}
               type="button"
-              onClick={() => {
-                setGenerateUsername(!generateUsername);
-              }}
+              onClick={handleGenerateUsername}
               className={`rounded-lg text-[#111b21] px-4 py-3
                 ${!canChange ? "cursor-not-allowed opacity-80" : "hover:bg-green-500 transition"} text-sm ring-1 ring-gray-700 bg-green-600 `}
             >

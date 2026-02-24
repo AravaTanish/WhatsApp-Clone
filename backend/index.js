@@ -3,7 +3,8 @@ import express from "express";
 import connectDB from "./config/dbConnect.js";
 import authRoutes from "./routes/auth.routes.js";
 import uploadRoutes from "./routes/upload.routes.js";
-import logoutRouter from "./routes/logout.routes.js";
+import logoutRoutes from "./routes/logout.routes.js";
+import searchRoutes from "./routes/search.routes.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 
@@ -20,8 +21,9 @@ app.use(express.json());
 
 // Routes
 app.use("/backend/login", authRoutes);
-app.use("/backend/logout", logoutRouter);
+app.use("/backend/logout", logoutRoutes);
 app.use("/backend/user", uploadRoutes);
+app.use("/backend/search", searchRoutes);
 
 connectDB();
 app.listen(process.env.PORT, () => {

@@ -2,7 +2,7 @@
 
 /* Background gradient */
 .bg-auth-gradient {
-  background: radial-gradient(circle at top, #1f2c25, #0b141a 70%);
+  background: radial-gradient(circle at top, #16201b, #0b141a 70%);
 }
 
 /* Reusable input style */

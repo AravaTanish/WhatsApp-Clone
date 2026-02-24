@@ -1,38 +1,98 @@
-import api from "../api/axios";
-import toast from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
-import useUserStore from "../store/userStore";
+import { useState, useEffect } from "react";
+import LeftRail from "../components/Chat_components/LeftRail.jsx";
+import Sidebar from "../components/Chat_components/Sidebar.jsx";
+import ChatHeader from "../components/Chat_components/ChatHeader.jsx";
+import MessageList from "../components/Chat_components/MessageList.jsx";
+import MessageInput from "../components/Chat_components/MessageInput.jsx";
 
-function Chat() {
-  const navigate = useNavigate();
-  const clearUser = useUserStore((state) => state.clearUser);
+const chatList = [
+  {
+    id: 1,
+    name: "Bob",
+    message: "Wow!",
+    time: "Yesterday",
+    avatar: "https://i.pravatar.cc/150?img=5",
+  },
+  {
+    id: 2,
+    name: "Alex",
+    message: "Dear students...",
+    time: "Yesterday",
+    avatar: "https://i.pravatar.cc/150?img=8",
+  },
+];
 
-  const logout = async () => {
-    try {
-      const response = await api.get("/logout");
-      if (response.data.success) {
-        toast.success(response.data.message);
-      }
-    } catch (error) {
-      console.error("Logout error", error);
-      toast.error(error.response.data.message);
-    } finally {
-      localStorage.removeItem("token");
-      clearUser();
-      navigate("/logout");
-    }
+export default function ChatPage() {
+  const [selectedChat, setSelectedChat] = useState(chatList[0]);
+  const [messages, setMessages] = useState([
+    { id: 1, text: "Hello 👋", sender: "other" },
+    { id: 2, text: "Hi", sender: "me" },
+  ]);
+  const [newMessage, setNewMessage] = useState("");
+  const [showSidebar, setShowSidebar] = useState(() => {
+    const saved = localStorage.getItem("sidebar");
+    return saved ? JSON.parse(saved) : true;
+  });
+
+  useEffect(() => {
+    localStorage.setItem("sidebar", JSON.stringify(showSidebar));
+  }, [showSidebar]);
+  const handleSend = () => {
+    if (!newMessage.trim()) return;
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: Date.now(),
+        text: newMessage,
+        sender: "me",
+      },
+    ]);
+
+    setNewMessage("");
   };
+
   return (
-    <div>
-      <h1>Chat Page</h1>
-      <button
-        className="text-white rounded-lg bg-blue-500 py-2 px-4 m-2"
-        onClick={logout}
+    <div className="h-screen flex bg-auth-gradient text-white">
+      {/* MOBILE DRAWER OVERLAY */}
+      {showSidebar && (
+        <div
+          className="fixed inset-0 bg-black/40 z-10 md:hidden"
+          onClick={() => setShowSidebar(false)}
+        />
+      )}
+
+      {/* LEFT DRAWER (LeftRail + Sidebar together) */}
+      <div
+        className={`fixed md:static z-20 top-0 left-0 h-full flex
+  w-[384px] md:w-auto
+  transform ${showSidebar ? "translate-x-0" : "-translate-x-full"}
+  md:translate-x-0 transition-transform duration-300 ease-in-out`}
       >
-        Log Out
-      </button>
+        <LeftRail />
+        <Sidebar
+          chatList={chatList}
+          selectedChat={selectedChat}
+          setSelectedChat={setSelectedChat}
+          showSidebar={showSidebar}
+          setShowSidebar={setShowSidebar}
+        />
+      </div>
+
+      <div className="flex-1 flex flex-col bg-[#0b141a]">
+        <ChatHeader
+          selectedChat={selectedChat}
+          setShowSidebar={setShowSidebar}
+        />
+
+        <MessageList messages={messages} />
+
+        <MessageInput
+          newMessage={newMessage}
+          setNewMessage={setNewMessage}
+          handleSend={handleSend}
+        />
+      </div>
     </div>
   );
 }
-
-export default Chat;
