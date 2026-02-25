@@ -49,7 +49,7 @@ function ProfileSetup() {
 
   // For userId checking
   useEffect(() => {
-    const handelChecking = async () => {
+    const handelChecking = setTimeout(async () => {
       try {
         const response = await api.post("/login/check-userId", {
           userId: userId,
@@ -64,8 +64,8 @@ function ProfileSetup() {
       } catch (error) {
         console.log(error);
       }
-    };
-    handelChecking();
+    }, 300);
+    return () => clearTimeout(handelChecking);
   }, [userId]);
 
   //For profile photo upload in cloudinary

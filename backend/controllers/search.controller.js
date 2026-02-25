@@ -11,7 +11,7 @@ export const searchUsers = async (req, res) => {
           $options: "i",
         },
       },
-      "userId profilePicture.url",
+      "userId profilePicture.url about",
     ).limit(20);
     return res
       .status(200)

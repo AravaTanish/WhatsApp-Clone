@@ -2,11 +2,20 @@ import { useEffect, useState } from "react";
 import { FiX } from "react-icons/fi";
 import Loading from "../LoadingScreen/Loading.jsx";
 import api from "../../api/axios.js";
+import UserProfile from "./UserProfile.jsx";
+import useUserStore from "../../store/userStore.js";
 
 export default function AddFriendPanel({ isOpen, onClose }) {
   const [search, setSearch] = useState("");
-  const [users, setUsers] = useState([]);
+  let [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [openProfile, setOpenProfile] = useState(false);
+  const { userId } = useUserStore().user;
+
+  users = users.filter(function (item) {
+    return item.userId !== userId;
+  });
 
   // Close when ESC pressed
   useEffect(() => {
@@ -37,9 +46,7 @@ export default function AddFriendPanel({ isOpen, onClose }) {
     const delay = setTimeout(async () => {
       try {
         setLoading(true);
-
         const response = await api.get(`/search/users?search=${search}`);
-        console.log(response);
         setUsers(response.data.users);
       } catch (error) {
         console.error("Search error:", error);
@@ -100,6 +107,10 @@ export default function AddFriendPanel({ isOpen, onClose }) {
           {users.map((user) => (
             <div
               key={user._id}
+              onClick={() => {
+                setSelectedUser(user);
+                setOpenProfile(true);
+              }}
               className="flex items-center gap-3 px-3 py-2 rounded-lg 
               hover:bg-[#202c33] cursor-pointer transition"
             >
@@ -114,6 +125,13 @@ export default function AddFriendPanel({ isOpen, onClose }) {
           ))}
         </div>
       </div>
+
+      <UserProfile
+        isOpen={openProfile}
+        onClose={() => setOpenProfile(false)}
+        user={selectedUser}
+        friendshipStatus="none"
+      />
     </>
   );
 }
