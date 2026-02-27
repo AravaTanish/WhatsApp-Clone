@@ -35,7 +35,7 @@ export default function UserProfile({
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-black bg-opacity-40">
-      <div className="w-[400px] h-full bg-[#0f1c21] text-white p-6 flex flex-col">
+      <div className="w-100 h-full bg-[#0f1c21] text-white p-6 flex flex-col">
         {/* Close Button */}
 
         <FiX

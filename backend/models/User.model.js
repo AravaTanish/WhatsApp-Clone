@@ -47,6 +47,7 @@ const userSchema = new mongoose.Schema(
       url: String,
       publicId: String,
     },
+
     about: String,
 
     lastSeen: Date,
@@ -56,27 +57,12 @@ const userSchema = new mongoose.Schema(
       default: false,
     },
 
-    contacts: [
+    friends: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
       },
     ],
-
-    friendRequests: {
-      sent: [
-        {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "User",
-        },
-      ],
-      received: [
-        {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "User",
-        },
-      ],
-    },
   },
   { timestamps: true },
 );
