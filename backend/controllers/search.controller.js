@@ -11,8 +11,10 @@ export const searchUsers = async (req, res) => {
           $options: "i",
         },
       },
-      "userId profilePicture.url about",
-    ).limit(20);
+      "userId profilePicture.url",
+    )
+      .limit(20)
+      .lean();
     return res
       .status(200)
       .json({ success: true, message: "Users fetched", users });

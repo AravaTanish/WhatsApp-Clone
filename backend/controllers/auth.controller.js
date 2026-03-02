@@ -266,16 +266,14 @@ export const complete = async (req, res) => {
 
     await user.save();
 
-    return res
-      .status(200)
-      .json({
-        success: true,
-        userId: user.userId,
-        id: user._id,
-        email: user.email,
-        isCompleted: user.isCompleted,
-        message: "Profile setup completed",
-      });
+    return res.status(200).json({
+      success: true,
+      userId: user.userId,
+      id: user._id,
+      email: user.email,
+      isCompleted: user.isCompleted,
+      message: "Profile setup completed",
+    });
   } catch (error) {
     return res.status(400).json({ success: false, message: "Server Erorr" });
   }
@@ -284,7 +282,7 @@ export const complete = async (req, res) => {
 export const me = async (req, res) => {
   try {
     const id = req.user.userId;
-    const user = await User.findById(id);
+    const user = await User.findById(id).lean();
     if (!user) {
       return res
         .status(400)

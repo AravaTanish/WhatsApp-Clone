@@ -1,13 +1,19 @@
-import { useState } from "react";
 import { IoChatbubbleEllipsesOutline } from "react-icons/io5";
 import { MdGroups } from "react-icons/md";
 import { FiPhone, FiSettings } from "react-icons/fi";
 import { TiUserAdd } from "react-icons/ti";
+import { FaUserFriends } from "react-icons/fa";
+import { MdOutlinePendingActions } from "react-icons/md";
 import { LuMessageCircleDashed } from "react-icons/lu";
-import AddFriendPanel from "./AddFriendPannel.jsx";
+import UserPanel from "./UserPanel.jsx";
+import PendingRequestsPanel from "./PendingRequestPanel.jsx";
 
-export default function LeftRail() {
-  const [isPanelOpen, setIsPanelOpen] = useState(false);
+export default function LeftRail({
+  panelMode,
+  setPanelMode,
+  pendingOpen,
+  setPendingOpen,
+}) {
   return (
     <div
       className="flex w-16 flex-col justify-between
@@ -53,9 +59,28 @@ export default function LeftRail() {
 
         {/* Add Friends */}
         <div className="flex items-center group cursor-pointer text-gray-400 hover:text-white transition">
-          <TiUserAdd size={24} onClick={() => setIsPanelOpen(true)} />
+          <TiUserAdd size={24} onClick={() => setPanelMode("search")} />
           <span className="absolute left-12 text-xs bg-black px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition">
             Add Friends
+          </span>
+        </div>
+
+        {/* All Friends */}
+        <div className="flex items-center group cursor-pointer text-gray-400 hover:text-white transition">
+          <FaUserFriends size={24} onClick={() => setPanelMode("friends")} />
+          <span className="absolute left-12 text-xs bg-black px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition">
+            Your Friends
+          </span>
+        </div>
+
+        {/* Pending Requests */}
+        <div className="flex items-center group cursor-pointer text-gray-400 hover:text-white transition">
+          <MdOutlinePendingActions
+            size={24}
+            onClick={() => setPendingOpen(true)}
+          />
+          <span className="absolute left-12 text-xs bg-black px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition">
+            Pending Requests
           </span>
         </div>
       </div>
@@ -88,9 +113,14 @@ export default function LeftRail() {
           </span>
         </div>
       </div>
-      <AddFriendPanel
-        isOpen={isPanelOpen}
-        onClose={() => setIsPanelOpen(false)}
+      <UserPanel
+        mode={panelMode}
+        isOpen={panelMode !== null}
+        onClose={() => setPanelMode(null)}
+      />
+      <PendingRequestsPanel
+        isOpen={pendingOpen}
+        onClose={() => setPendingOpen(null)}
       />
     </div>
   );

@@ -28,6 +28,9 @@ export default function ChatPage() {
     { id: 1, text: "Hello 👋", sender: "other" },
     { id: 2, text: "Hi", sender: "me" },
   ]);
+
+  const [panelMode, setPanelMode] = useState(null);
+  const [pendingOpen, setPendingOpen] = useState(false);
   const [newMessage, setNewMessage] = useState("");
   const [showSidebar, setShowSidebar] = useState(() => {
     const saved = localStorage.getItem("sidebar");
@@ -54,11 +57,20 @@ export default function ChatPage() {
 
   return (
     <div className="h-screen flex bg-auth-gradient text-white">
-      {/* MOBILE DRAWER OVERLAY */}
       {showSidebar && (
         <div
           className="fixed inset-0 bg-black/40 z-10 md:hidden"
           onClick={() => setShowSidebar(false)}
+        />
+      )}
+      {/* GLOBAL OVERLAY FOR PANELS */}
+      {(showSidebar || panelMode !== null) && (
+        <div
+          className="fixed inset-0 backdrop-blur-sm bg-black/30 z-10"
+          onClick={() => {
+            setShowSidebar(false);
+            setPanelMode(null);
+          }}
         />
       )}
 
@@ -69,7 +81,12 @@ export default function ChatPage() {
   transform ${showSidebar ? "translate-x-0" : "-translate-x-full"}
   md:translate-x-0 transition-transform duration-300 ease-in-out`}
       >
-        <LeftRail />
+        <LeftRail
+          panelMode={panelMode}
+          setPanelMode={setPanelMode}
+          pendingOpen={pendingOpen}
+          setPendingOpen={setPendingOpen}
+        />
         <Sidebar
           chatList={chatList}
           selectedChat={selectedChat}
