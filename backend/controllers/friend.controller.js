@@ -308,7 +308,8 @@ export const profile = async (req, res) => {
     });
 
     if (existingRequest) {
-      if (existingRequest.sender === id1) {
+      const senderId = existingRequest.sender.toString();
+      if (senderId === id1) {
         friendshipStatus = "pending_sent";
       } else {
         friendshipStatus = "pending_received";

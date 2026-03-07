@@ -7,6 +7,8 @@ import uploadRoutes from "./routes/upload.routes.js";
 import logoutRoutes from "./routes/logout.routes.js";
 import searchRoutes from "./routes/search.routes.js";
 import friendRoutes from "./routes/friend.routes.js";
+import conversationRoutes from "./routes/conversation.routes.js";
+import messageRoutes from "./routes/message.routes.js";
 
 import cookieParser from "cookie-parser";
 import cors from "cors";
@@ -29,6 +31,8 @@ app.use("/backend/logout", logoutRoutes);
 app.use("/backend/user", uploadRoutes);
 app.use("/backend/search", searchRoutes);
 app.use("/backend/friends", friendRoutes);
+app.use("/backend/conversations", conversationRoutes);
+app.use("/backend/message", messageRoutes);
 
 connectDB();
 app.listen(process.env.PORT, () => {

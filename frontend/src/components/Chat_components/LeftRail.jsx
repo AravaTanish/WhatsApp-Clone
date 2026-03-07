@@ -7,13 +7,11 @@ import { MdOutlinePendingActions } from "react-icons/md";
 import { LuMessageCircleDashed } from "react-icons/lu";
 import UserPanel from "./UserPanel.jsx";
 import PendingRequestsPanel from "./PendingRequestPanel.jsx";
+import useChatStore from "../../store/chatStore.js";
 
-export default function LeftRail({
-  panelMode,
-  setPanelMode,
-  pendingOpen,
-  setPendingOpen,
-}) {
+export default function LeftRail() {
+  const { panelMode, setPanelMode, pendingOpen, setPendingOpen } =
+    useChatStore();
   return (
     <div
       className="flex w-16 flex-col justify-between

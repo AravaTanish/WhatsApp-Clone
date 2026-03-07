@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { FiMessageCircle } from "react-icons/fi";
 import { TiUserAdd, TiUserDelete } from "react-icons/ti";
 import api from "../api/axios.js";
 import Loading from "../components/LoadingScreen/Loading.jsx";
 import toast from "react-hot-toast";
+import useChatStore from "../store/chatStore.js";
 
 export default function UserProfile() {
   const [user, setUser] = useState({});
@@ -12,6 +13,9 @@ export default function UserProfile() {
   const [requestMessage, setRequestMessage] = useState("");
   const [requestId, setRequestId] = useState("");
   const [loading, setLoading] = useState(false);
+  const { setSelectedChat, setPanelMode, setPendingOpen, setShowSidebar } =
+    useChatStore();
+  const navigate = useNavigate();
 
   const { userId } = useParams();
 
@@ -23,7 +27,6 @@ export default function UserProfile() {
         if (response.data.success) {
           setFriendshipStatus(response.data.friendshipStatus);
           const userDetails = response.data.user;
-          console.log(response.data);
           setUser(userDetails);
           if (response.data.requestId) {
             setRequestId(response.data.requestId);
@@ -114,6 +117,30 @@ export default function UserProfile() {
       console.log(error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handelChat = async () => {
+    try {
+      const response = await api.get(`/conversations/${user._id}`);
+      if (response.data.success) {
+        if (response.data.conversation) {
+          setSelectedChat({
+            user: user,
+            conversation: response.data.conversation,
+          });
+        } else {
+          setSelectedChat({ user: user });
+        }
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error(error.response?.data?.message);
+    } finally {
+      setShowSidebar(false);
+      setPanelMode(null);
+      setPendingOpen(false);
+      navigate("/chat");
     }
   };
 
@@ -211,8 +238,11 @@ export default function UserProfile() {
 
           {/* ALREADY FRIEND */}
           {friendshipStatus === "accepted" && (
-            <div className="flex gap-4">
-              <button className="flex items-center gap-2 px-6 py-2 rounded-lg bg-[#1f2c33] hover:bg-[#2a3942] transition">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <button
+                onClick={handelChat}
+                className="flex justify-center items-center gap-2 px-6 py-2 rounded-lg text-green-400 border-2 border-green-500 bg-[#1f2c33] hover:bg-[#2a3942] transition"
+              >
                 <FiMessageCircle />
                 Chat
               </button>

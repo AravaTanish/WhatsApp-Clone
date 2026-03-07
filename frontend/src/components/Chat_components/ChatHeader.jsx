@@ -5,8 +5,10 @@ import {
   FiVideo,
   FiArrowLeft,
 } from "react-icons/fi";
+import useChatStore from "../../store/chatStore";
 
-export default function ChatHeader({ selectedChat, setShowSidebar }) {
+export default function ChatHeader() {
+  const { selectedChat, setShowSidebar } = useChatStore();
   return (
     <div className="flex items-center justify-between px-4 md:px-6 py-4 bg-[#111b21] border-b border-gray-800">
       <div className="flex items-center gap-3">
@@ -19,13 +21,13 @@ export default function ChatHeader({ selectedChat, setShowSidebar }) {
         </button>
 
         <img
-          src={selectedChat.avatar}
+          src={selectedChat.user.profilePicture}
           alt=""
           className="w-10 h-10 rounded-full"
         />
 
-        <div>
-          <p className="font-medium">{selectedChat.name}</p>
+        <div className="overflow-x-hidden">
+          <p className="font-medium">{selectedChat.user.userId}</p>
           <p className="text-xs text-gray-400">Online</p>
         </div>
       </div>
@@ -33,7 +35,6 @@ export default function ChatHeader({ selectedChat, setShowSidebar }) {
       <div className="flex items-center gap-6 text-gray-400">
         <FiVideo size={20} className="cursor-pointer hover:text-white" />
         <FiPhone size={20} className="cursor-pointer hover:text-white" />
-        <FiSearch size={20} className="cursor-pointer hover:text-white" />
         <FiMoreVertical size={20} className="cursor-pointer hover:text-white" />
       </div>
     </div>
