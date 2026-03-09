@@ -11,6 +11,7 @@ function RightSide() {
   const { selectedChat } = useChatStore();
   const [newMessage, setNewMessage] = useState("");
   const [messages, setMessages] = useState([]);
+  const [selectionMode, setSelectionMode] = useState(false);
 
   useEffect(() => {
     if (selectedChat === null || !selectedChat.conversation) return;
@@ -66,11 +67,16 @@ function RightSide() {
   return (
     <div className="flex-1 flex flex-col bg-[#0b141a]">
       <ChatHeader />
-      <MessageList messages={messages} />
+      <MessageList
+        messages={messages}
+        selectionMode={selectionMode}
+        setSelectionMode={setSelectionMode}
+      />
       <MessageInput
         newMessage={newMessage}
         setNewMessage={setNewMessage}
         handleSend={handleSend}
+        selectionMode={selectionMode}
       />
     </div>
   );

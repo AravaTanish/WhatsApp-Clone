@@ -4,7 +4,10 @@ export default function MessageInput({
   newMessage,
   setNewMessage,
   handleSend,
+  selectionMode,
 }) {
+  if (selectionMode) return null;
+
   return (
     <div className="flex items-center gap-4 px-4 md:px-6 py-4 bg-[#111b21] border-t border-gray-800">
       <input
