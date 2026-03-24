@@ -153,7 +153,7 @@ export default function UserPanel({ mode, isOpen, onClose }) {
               hover:bg-[#202c33] cursor-pointer transition"
             >
               <img
-                src={user.profilePicture?.url || "/default-avatar.png"}
+                src={user.profilePicture || "/default-avatar.png"}
                 alt="profile"
                 className="w-10 h-10 rounded-full object-cover"
               />

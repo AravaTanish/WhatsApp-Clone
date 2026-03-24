@@ -1,10 +1,10 @@
-import User from "../models/user.model.js";
+import User from "../models/User.model.js";
 import FriendRequest from "../models/FriendRequests.model.js";
 
 export const addFriend = async (req, res) => {
   try {
     const { receiverId, message } = req.body;
-    const senderId = req.user.userId;
+    const senderId = req.user.id;
 
     if (senderId === receiverId) {
       return res.status(400).json({
@@ -74,7 +74,7 @@ export const addFriend = async (req, res) => {
 export const removeFriend = async (req, res) => {
   try {
     const { receiverId } = req.params;
-    const senderId = req.user.userId;
+    const senderId = req.user.id;
 
     if (senderId === receiverId) {
       return res.status(400).json({
@@ -124,7 +124,7 @@ export const removeFriend = async (req, res) => {
 export const acceptRequest = async (req, res) => {
   try {
     const { requestId } = req.body;
-    const userId = req.user.userId;
+    const userId = req.user.id;
 
     const request = await FriendRequest.findById(requestId);
     if (!request) {
@@ -174,7 +174,7 @@ export const acceptRequest = async (req, res) => {
 export const rejectRequest = async (req, res) => {
   try {
     const { requestId } = req.body;
-    const userId = req.user.userId;
+    const userId = req.user.id;
 
     const request = await FriendRequest.findById(requestId);
     if (!request) {
@@ -207,13 +207,13 @@ export const rejectRequest = async (req, res) => {
 
 export const showAllFriends = async (req, res) => {
   try {
-    const id = req.user.userId;
+    const id = req.user.id;
 
     const user = await User.findById(id)
       .select("friends")
       .populate({
         path: "friends",
-        select: "userId profilePicture.url about",
+        select: "userId profilePicture about",
         options: { sort: { userId: 1 } }, // 1 = ascending, -1 = descending
       })
       .lean();
@@ -239,12 +239,12 @@ export const showAllFriends = async (req, res) => {
 
 export const showPendingRequests = async (req, res) => {
   try {
-    const userId = req.user.userId;
+    const userId = req.user.id;
 
     const requests = await FriendRequest.find({
       receiver: userId,
     })
-      .populate("sender", "userId profilePicture.url about")
+      .populate("sender", "userId profilePicture about")
       .sort({ createdAt: -1 })
       .lean();
 
@@ -263,7 +263,7 @@ export const showPendingRequests = async (req, res) => {
 
 export const profile = async (req, res) => {
   try {
-    const id1 = req.user.userId;
+    const id1 = req.user.id;
     const userId2 = req.params.userId;
     let friendshipStatus = "none";
 
@@ -281,7 +281,7 @@ export const profile = async (req, res) => {
     const userDetails = {
       _id: user2._id,
       userId: user2.userId,
-      profilePicture: user2.profilePicture.url,
+      profilePicture: user2.profilePicture,
       about: user2.about,
     };
 

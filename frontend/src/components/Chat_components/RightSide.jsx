@@ -8,7 +8,7 @@ import toast from "react-hot-toast";
 import api from "../../api/axios.js";
 
 function RightSide() {
-  const { selectedChat } = useChatStore();
+  const { selectedChat, setSelectedChat } = useChatStore();
   const [newMessage, setNewMessage] = useState("");
   const [messages, setMessages] = useState([]);
   const [selectionMode, setSelectionMode] = useState(false);
@@ -41,6 +41,13 @@ function RightSide() {
       if (response.data.success) {
         const sentMessage = response.data.sentMessage;
         setMessages((prev) => [...prev, sentMessage]);
+        const conversation = response.data.conversation;
+        if (!selectedChat.conversation) {
+          setSelectedChat({
+            user: selectedChat.user,
+            conversation: conversation,
+          });
+        }
       }
     } catch (error) {
       console.log(error);
@@ -69,6 +76,7 @@ function RightSide() {
       <ChatHeader />
       <MessageList
         messages={messages}
+        setMessages={setMessages}
         selectionMode={selectionMode}
         setSelectionMode={setSelectionMode}
       />

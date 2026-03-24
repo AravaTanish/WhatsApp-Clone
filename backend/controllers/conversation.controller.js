@@ -2,13 +2,13 @@ import Conversation from "../models/Conversation.model.js";
 
 export const fetchConversations = async (req, res) => {
   try {
-    const id = req.user.userId;
+    const id = req.user.id;
 
     const conversations = await Conversation.find({
       participants: id,
     })
-      .populate("participants", "userId profilePicture.url about")
-      .populate("lastMessage")
+      .populate("participants", "userId profilePicture about")
+      .populate("lastMessagePerUser.message")
       .sort({ updatedAt: -1 });
 
     res.status(200).json({
@@ -26,20 +26,20 @@ export const fetchConversations = async (req, res) => {
 
 export const findConversation = async (req, res) => {
   try {
-    const currentUserId = req.user.userId;
+    const currentUserId = req.user.id;
     const { userId } = req.params;
-    console.log("1111", currentUserId, userId);
+
     let conversation = await Conversation.findOne({
       conversationType: "private",
       participants: { $all: [currentUserId, userId] },
     });
-    console.log("2222", currentUserId, userId);
+
     if (!conversation) {
       return res
         .status(200)
         .json({ success: true, message: "No conversation exists" });
     }
-    console.log("3333", currentUserId, userId);
+
     return res.status(200).json({
       success: true,
       conversation,

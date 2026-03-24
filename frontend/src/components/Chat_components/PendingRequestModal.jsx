@@ -58,7 +58,7 @@ export default function PendingRequestModal({ isOpen, onClose, request }) {
 
           <div className="flex flex-col items-center mt-4">
             <img
-              src={request.sender.profilePicture?.url || "/default-avatar.png"}
+              src={request.sender.profilePicture || "/default-avatar.png"}
               className="w-24 h-24 rounded-full object-cover border border-[#1f2c33]"
             />
 

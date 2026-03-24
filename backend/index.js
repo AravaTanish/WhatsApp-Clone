@@ -1,6 +1,10 @@
 import "dotenv/config";
 import express from "express";
+import http from "http";
+import { Server } from "socket.io";
+
 import connectDB from "./config/dbConnect.js";
+import setupSocket from "./socket/socketHandler.js";
 
 import authRoutes from "./routes/auth.routes.js";
 import uploadRoutes from "./routes/upload.routes.js";
@@ -14,6 +18,17 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 
 const app = express();
+const server = http.createServer(app);
+
+//for socket
+export const io = new Server(server, {
+  cors: {
+    origin: process.env.FRONTEND_URL,
+    credentials: true,
+  },
+});
+
+setupSocket(io);
 
 app.use(
   cors({
@@ -35,6 +50,7 @@ app.use("/backend/conversations", conversationRoutes);
 app.use("/backend/message", messageRoutes);
 
 connectDB();
-app.listen(process.env.PORT, () => {
+
+server.listen(process.env.PORT, () => {
   console.log(`\nServer is listening on port: ${process.env.PORT}`);
 });

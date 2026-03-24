@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import validator from "validator";
-import User from "../models/user.model.js";
+import User from "../models/User.model.js";
 import { generateOtp } from "../utils/generateOtp.js";
 import {
   generateAccessToken,
@@ -170,7 +170,7 @@ export const resendOtp = async (req, res) => {
 
 export const userIdGeneration = async (req, res) => {
   try {
-    const id = req.user.userId;
+    const id = req.user.id;
 
     const user = await User.findById(id);
 
@@ -249,7 +249,7 @@ export const checkUserId = async (req, res) => {
 export const complete = async (req, res) => {
   try {
     const { photoURL, userId, about } = req.body;
-    const id = req.user.userId;
+    const id = req.user.id;
 
     const user = await User.findById(id);
     if (!user) {
@@ -258,8 +258,7 @@ export const complete = async (req, res) => {
         .json({ success: false, message: "User not found" });
     }
 
-    user.profilePicture.url = photoURL;
-    user.profilePicture.publicId = id;
+    user.profilePicture = photoURL;
     user.userId = userId;
     user.about = about;
     user.isCompleted = true;
@@ -281,7 +280,7 @@ export const complete = async (req, res) => {
 
 export const me = async (req, res) => {
   try {
-    const id = req.user.userId;
+    const id = req.user.id;
     const user = await User.findById(id).lean();
     if (!user) {
       return res

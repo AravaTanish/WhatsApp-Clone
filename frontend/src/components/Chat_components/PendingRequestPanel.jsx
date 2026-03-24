@@ -122,7 +122,7 @@ export default function PendingRequestsPanel({ isOpen, onClose }) {
                 className="flex items-center gap-3 cursor-pointer flex-1"
               >
                 <img
-                  src={req.sender.profilePicture?.url}
+                  src={req.sender.profilePicture}
                   alt="profile"
                   className="w-10 h-10 rounded-full object-cover"
                 />

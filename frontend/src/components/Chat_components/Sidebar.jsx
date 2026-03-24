@@ -1,11 +1,27 @@
+import { useEffect } from "react";
 import { FiSearch, FiMoreVertical } from "react-icons/fi";
 import useChatStore from "../../store/chatStore.js";
 import useUserStore from "../../store/userStore.js";
 
 export default function Sidebar() {
-  const { chatList, selectedChat, setSelectedChat, setShowSidebar } =
-    useChatStore();
+  const {
+    chatList,
+    selectedChat,
+    setSelectedChat,
+    setShowSidebar,
+    initConversationListeners,
+    cleanupConversationListeners,
+  } = useChatStore();
+
   const { user } = useUserStore();
+
+  useEffect(() => {
+    initConversationListeners();
+
+    return () => {
+      cleanupConversationListeners();
+    };
+  }, [initConversationListeners, cleanupConversationListeners]);
 
   const handelSelectChat = (chat, otherUser) => {
     setSelectedChat({
@@ -13,14 +29,16 @@ export default function Sidebar() {
         _id: otherUser._id,
         userId: otherUser.userId,
         about: otherUser.about,
-        profilePicture: otherUser.profilePicture.url,
+        profilePicture: otherUser.profilePicture,
       },
       conversation: chat,
     });
+
     if (window.innerWidth < 768) {
       setShowSidebar(false);
     }
   };
+
   return (
     <div className="w-80 bg-[#111b21] border-r border-gray-800 h-full">
       {/* Header */}
@@ -45,9 +63,18 @@ export default function Sidebar() {
       <div className="overflow-y-auto">
         {chatList.map((chat) => {
           const otherUser = chat.participants.find((p) => p._id !== user.id);
+          const myLastMessageEntry = chat.lastMessagePerUser?.find(
+            (entry) => entry.user.toString() === user.id,
+          );
 
-          const time = chat.lastMessage?.createdAt
-            ? new Date(chat.lastMessage.createdAt).toLocaleTimeString([], {
+          const lastMsg = myLastMessageEntry?.message;
+          const unread =
+            chat.unreadCounts?.find(
+              (u) => u.user === user.id || u.user?._id === user.id,
+            )?.count || 0;
+
+          const time = lastMsg?.createdAt
+            ? new Date(lastMsg.createdAt).toLocaleTimeString([], {
                 hour: "2-digit",
                 minute: "2-digit",
               })
@@ -60,27 +87,54 @@ export default function Sidebar() {
                 handelSelectChat(chat, otherUser);
               }}
               className={`flex items-center gap-3 px-4 py-4 cursor-pointer border-b border-[#1f2c33]
-      ${
-        selectedChat?.conversation?._id === chat._id
-          ? "bg-[#1f2c33]"
-          : "hover:bg-[#1f2c33]"
-      }`}
+                          ${
+                            selectedChat?.conversation?._id === chat._id
+                              ? "bg-[#1f2c33]"
+                              : "hover:bg-[#1f2c33]"
+                          }`}
             >
               <img
-                src={otherUser?.profilePicture?.url}
+                src={otherUser?.profilePicture}
                 alt="photo"
                 className="w-12 h-12 rounded-full object-cover"
               />
 
-              <div className="flex-1">
-                <div className="flex justify-between">
-                  <span className="font-medium">{otherUser?.userId}</span>
-
-                  <span className="text-xs text-gray-400">{time}</span>
+              <div className="flex-1 min-w-0 flex justify-between">
+                {/* Left side */}
+                <div className="min-w-0">
+                  <div className="font-medium truncate">
+                    {otherUser?.userId}
+                  </div>
+                  <div className="text-sm text-gray-400 truncate max-w-45">
+                    {!lastMsg
+                      ? "No messages yet"
+                      : lastMsg.deletedForEveryone
+                        ? lastMsg.sender === user.id
+                          ? "You deleted this message"
+                          : "This message was deleted"
+                        : lastMsg.contentType === "text"
+                          ? lastMsg.text
+                          : lastMsg.contentType === "image"
+                            ? "Photo"
+                            : lastMsg.contentType === "video"
+                              ? "Video"
+                              : lastMsg.contentType === "audio"
+                                ? "Audio"
+                                : "Document"}
+                  </div>
                 </div>
 
-                <div className="text-sm text-gray-400 truncate">
-                  {chat.lastMessage?.text || "No messages yet"}
+                {/* Right side */}
+                <div className="flex flex-col items-end ml-2">
+                  <span className="text-xs text-gray-400 whitespace-nowrap">
+                    {time}
+                  </span>
+
+                  {unread > 0 && (
+                    <span className="mt-1 bg-green-500 text-white text-xs px-2 py-0.5 rounded-full">
+                      {unread}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>

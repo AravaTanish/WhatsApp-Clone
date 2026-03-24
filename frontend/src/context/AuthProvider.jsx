@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import useUserStore from "../store/userStore.js";
 import api from "../api/axios.js";
+import socket from "../socket/socket.js";
 
 const AuthProvider = ({ children }) => {
   const setUser = useUserStore((state) => state.setUser);
@@ -13,6 +14,15 @@ const AuthProvider = ({ children }) => {
       setLoading(false);
       return;
     }
+
+    const handleConnect = () => {
+      socket.emit("addUser");
+    };
+
+    const handleConnectError = (err) => {
+      console.log("Socket auth error:", err.message);
+    };
+
     const fetchUser = async () => {
       try {
         const response = await api.get("login/me");
@@ -24,6 +34,18 @@ const AuthProvider = ({ children }) => {
             email,
             isCompleted,
           });
+
+          socket.auth = { token };
+
+          socket.off("connect", handleConnect);
+          socket.on("connect", handleConnect);
+          socket.on("connect_error", handleConnectError);
+
+          if (!socket.connected) {
+            socket.connect();
+          } else {
+            socket.emit("addUser");
+          }
         }
       } catch {
         setUser(null);

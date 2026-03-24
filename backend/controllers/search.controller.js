@@ -1,4 +1,4 @@
-import User from "../models/user.model.js";
+import User from "../models/User.model.js";
 
 export const searchUsers = async (req, res) => {
   try {
@@ -11,7 +11,7 @@ export const searchUsers = async (req, res) => {
           $options: "i",
         },
       },
-      "userId profilePicture.url",
+      "userId profilePicture",
     )
       .limit(20)
       .lean();

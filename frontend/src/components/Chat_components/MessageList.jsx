@@ -2,16 +2,22 @@ import { useEffect, useRef, useState } from "react";
 import useUserStore from "../../store/userStore.js";
 import DeleteModal from "./DeleteModal.jsx";
 import SelectionBar from "./SelectionBar.jsx";
+import { IoCheckmark, IoCheckmarkDone } from "react-icons/io5";
+import useChatStore from "../../store/chatStore.js";
+import socket from "../../socket/socket.js";
 
 const now = Date.now();
+console.log("Now:", now);
 
 export default function MessageList({
   messages,
+  setMessages,
   selectionMode,
   setSelectionMode,
 }) {
   const messagesEndRef = useRef(null);
   const { user } = useUserStore();
+  const { selectedChat } = useChatStore();
 
   const [selectedMessages, setSelectedMessages] = useState([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -19,6 +25,117 @@ export default function MessageList({
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  useEffect(() => {
+    const conversationId = selectedChat?.conversation?._id;
+    if (!conversationId) return;
+
+    socket.emit("joinConversation", conversationId);
+    socket.emit("markMessagesAsRead", { conversationId });
+
+    return () => {
+      socket.emit("leaveConversation", conversationId);
+    };
+  }, [selectedChat?.conversation?._id]);
+
+  useEffect(() => {
+    const handleNewMessage = (message) => {
+      if (message.sender !== user.id) {
+        setMessages((prev) => [...prev, message]);
+      }
+    };
+
+    const handleDeleteForMe = ({ messageIds, id }) => {
+      if (id === user.id) {
+        setMessages((prev) =>
+          prev.filter((msg) => !messageIds.includes(msg._id)),
+        );
+      }
+    };
+
+    const handleDeleteForEveryone = ({ messageIds }) => {
+      setMessages((prev) =>
+        prev.map((msg) =>
+          messageIds.includes(msg._id)
+            ? { ...msg, deletedForEveryone: true }
+            : msg,
+        ),
+      );
+    };
+
+    const handleMessagesDeliveredUpdate = ({ updates }) => {
+      setMessages((prev) =>
+        prev.map((msg) => {
+          const update = updates.find(
+            (item) => item.messageId.toString() === msg._id.toString(),
+          );
+
+          if (!update) return msg;
+
+          const alreadyDelivered = (msg.deliveredTo || []).some(
+            (entry) => entry.user === update.id,
+          );
+
+          if (alreadyDelivered) return msg;
+
+          return {
+            ...msg,
+            deliveredTo: [
+              ...(msg.deliveredTo || []),
+              {
+                user: update.id,
+                deliveredAt: update.deliveredAt,
+              },
+            ],
+          };
+        }),
+      );
+    };
+
+    const handleMessagesReadUpdate = ({ messageIds, id, readAt }) => {
+      setMessages((prev) =>
+        prev.map((msg) => {
+          const isTarget = messageIds.some(
+            (id) => id.toString() === msg._id.toString(),
+          );
+
+          if (!isTarget) return msg;
+
+          const alreadyRead = (msg.readBy || []).some(
+            (entry) => entry.user.toString() === id.toString(),
+          );
+
+          const alreadyDelivered = (msg.deliveredTo || []).some(
+            (entry) => entry.user.toString() === id.toString(),
+          );
+
+          return {
+            ...msg,
+            readBy: alreadyRead
+              ? msg.readBy
+              : [...(msg.readBy || []), { user: id, readAt }],
+            deliveredTo: alreadyDelivered
+              ? msg.deliveredTo
+              : [...(msg.deliveredTo || []), { user: id, deliveredAt: readAt }],
+          };
+        }),
+      );
+    };
+
+    socket.on("newMessage", handleNewMessage);
+    socket.on("messagesDeletedForMe", handleDeleteForMe);
+    socket.on("messagesDeletedForEveryone", handleDeleteForEveryone);
+    socket.on("messagesDeliveredUpdate", handleMessagesDeliveredUpdate);
+    socket.on("messagesReadUpdate", handleMessagesReadUpdate);
+
+    return () => {
+      socket.off("newMessage", handleNewMessage);
+      socket.off("messagesDeletedForMe", handleDeleteForMe);
+      socket.off("messagesDeletedForEveryone", handleDeleteForEveryone);
+      socket.off("messagesDeliveredUpdate", handleMessagesDeliveredUpdate);
+      socket.off("messagesReadUpdate", handleMessagesReadUpdate);
+    };
+  }, [user.id, setMessages]);
 
   const toggleMessage = (id) => {
     setSelectedMessages((prev) =>
@@ -41,7 +158,6 @@ export default function MessageList({
   const allValidForEveryone = selectedMessages.every((id) => {
     const msg = messages.find((m) => m._id === id);
     if (!msg) return false;
-
     const diff = now - new Date(msg.createdAt);
     return (
       msg.sender === user.id &&
@@ -50,9 +166,50 @@ export default function MessageList({
     );
   });
 
+  const getMessageStatus = (msg) => {
+    if (msg.sender !== user.id) return null;
+
+    const otherUserId = selectedChat?.user?._id;
+    if (!otherUserId) return "sent";
+
+    const isRead = (msg.readBy || []).some(
+      (entry) => entry.user.toString() === otherUserId.toString(),
+    );
+
+    if (isRead) return "read";
+
+    const isDelivered = (msg.deliveredTo || []).some(
+      (entry) => entry.user.toString() === otherUserId.toString(),
+    );
+
+    if (isDelivered) return "delivered";
+
+    return "sent";
+  };
+
+  const renderMessageTicks = (msg) => {
+    if (msg.sender !== user.id) return null;
+
+    const status = getMessageStatus(msg);
+
+    if (status === "sent") {
+      return <IoCheckmark className="text-xs" />;
+    }
+
+    if (status === "delivered") {
+      return <IoCheckmarkDone className="text-xs" />;
+    }
+
+    if (status === "read") {
+      return <IoCheckmarkDone className="text-blue-500 text-xs" />;
+    }
+
+    return null;
+  };
+
   return (
     <>
-      <div className="flex-1 overflow-y-auto p-6 space-y-4">
+      <div className="flex-1 overflow-y-auto p-6 space-y-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
         {messages.map((msg) => {
           const time = new Date(msg.createdAt).toLocaleTimeString([], {
             hour: "2-digit",
@@ -101,11 +258,11 @@ export default function MessageList({
                 )}
 
                 <div
-                  className={`px-4 py-2 rounded-2xl text-sm max-w-xs md:max-w-md shadow
+                  className={`relative px-4 py-2 rounded-2xl text-sm max-w-xs md:max-w-md shadow flex flex-col wrap-break-word whitespace-pre-wrap
                   ${
                     msg.sender === user.id
-                      ? "bg-[#22c55e] text-black"
-                      : "bg-[#1f2c33]"
+                      ? "bg-[#22c55e] text-black rounded-br-sm"
+                      : "bg-[#1f2c33] rounded-bl-sm"
                   }`}
                 >
                   <p>
@@ -116,9 +273,10 @@ export default function MessageList({
                       : msg.text}
                   </p>
 
-                  <p className="text-[10px] mt-1 opacity-70 text-right">
-                    {time}
-                  </p>
+                  <div className="flex items-center justify-end gap-1 text-[10px] mt-1 opacity-70">
+                    <span>{time}</span>
+                    {renderMessageTicks(msg)}
+                  </div>
                 </div>
               </div>
             </div>

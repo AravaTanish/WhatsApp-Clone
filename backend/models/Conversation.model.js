@@ -9,10 +9,18 @@ const conversationSchema = new mongoose.Schema(
         required: true,
       },
     ],
-    lastMessage: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Message",
-    },
+    lastMessagePerUser: [
+      {
+        user: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+        },
+        message: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Message",
+        },
+      },
+    ],
     unreadCounts: [
       {
         user: {
@@ -36,7 +44,7 @@ const conversationSchema = new mongoose.Schema(
       ref: "User",
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const Conversation = mongoose.model("Conversation", conversationSchema);
