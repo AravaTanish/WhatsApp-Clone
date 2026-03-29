@@ -35,13 +35,21 @@ export default function onlineUserEvents(io, socket) {
   socket.on("disconnect", () => {
     const id = socketToUser.get(socket.id);
     if (!id) return;
+    console.log("ReceiverId:", socket.activeReceiverId);
+    if (socket.activeReceiverId) {
+      io.to(`user:${socket.activeReceiverId}`).emit("userStoppedTyping", {
+        conversationId: socket.activeConversationId,
+        id: id,
+      });
+      console.log("Stopped Typing");
+    }
 
     const sockets = onlineUsers.get(id);
     if (!sockets) return;
 
     sockets.delete(socket.id);
     socketToUser.delete(socket.id);
-    
+
     console.log("Disconnected:", id, "->", socket.id);
 
     if (sockets.size === 0) {

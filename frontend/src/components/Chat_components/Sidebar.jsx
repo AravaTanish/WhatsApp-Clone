@@ -11,6 +11,7 @@ export default function Sidebar() {
     setShowSidebar,
     initConversationListeners,
     cleanupConversationListeners,
+    isUserTypingInConversation,
   } = useChatStore();
 
   const { user } = useUserStore();
@@ -63,6 +64,10 @@ export default function Sidebar() {
       <div className="overflow-y-auto">
         {chatList.map((chat) => {
           const otherUser = chat.participants.find((p) => p._id !== user.id);
+          const isTyping = isUserTypingInConversation({
+            conversationId: chat._id,
+            id: otherUser?._id,
+          });
           const myLastMessageEntry = chat.lastMessagePerUser?.find(
             (entry) => entry.user.toString() === user.id,
           );
@@ -105,22 +110,28 @@ export default function Sidebar() {
                   <div className="font-medium truncate">
                     {otherUser?.userId}
                   </div>
-                  <div className="text-sm text-gray-400 truncate max-w-45">
-                    {!lastMsg
-                      ? "No messages yet"
-                      : lastMsg.deletedForEveryone
-                        ? lastMsg.sender === user.id
-                          ? "You deleted this message"
-                          : "This message was deleted"
-                        : lastMsg.contentType === "text"
-                          ? lastMsg.text
-                          : lastMsg.contentType === "image"
-                            ? "Photo"
-                            : lastMsg.contentType === "video"
-                              ? "Video"
-                              : lastMsg.contentType === "audio"
-                                ? "Audio"
-                                : "Document"}
+                  <div
+                    className={`text-sm truncate max-w-45 ${
+                      isTyping ? "text-[#22c55e] font-medium" : "text-gray-400"
+                    }`}
+                  >
+                    {isTyping
+                      ? "Typing..."
+                      : !lastMsg
+                        ? "No messages yet"
+                        : lastMsg.deletedForEveryone
+                          ? lastMsg.sender === user.id
+                            ? "You deleted this message"
+                            : "This message was deleted"
+                          : lastMsg.contentType === "text"
+                            ? lastMsg.text
+                            : lastMsg.contentType === "image"
+                              ? "Photo"
+                              : lastMsg.contentType === "video"
+                                ? "Video"
+                                : lastMsg.contentType === "audio"
+                                  ? "Audio"
+                                  : "Document"}
                   </div>
                 </div>
 

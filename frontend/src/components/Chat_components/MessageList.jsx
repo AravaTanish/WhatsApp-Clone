@@ -7,7 +7,6 @@ import useChatStore from "../../store/chatStore.js";
 import socket from "../../socket/socket.js";
 
 const now = Date.now();
-console.log("Now:", now);
 
 export default function MessageList({
   messages,
@@ -17,26 +16,38 @@ export default function MessageList({
 }) {
   const messagesEndRef = useRef(null);
   const { user } = useUserStore();
-  const { selectedChat } = useChatStore();
+  const { selectedChat, isUserTypingInConversation } = useChatStore();
+
+  const conversationId = selectedChat?.conversation?._id;
+  const otherUserId = selectedChat?.user?._id;
+
+  const isOtherUserTyping = isUserTypingInConversation({
+    conversationId,
+    id: otherUserId,
+  });
+  console.log("Typing:", isOtherUserTyping);
 
   const [selectedMessages, setSelectedMessages] = useState([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, isOtherUserTyping]);
 
   useEffect(() => {
     const conversationId = selectedChat?.conversation?._id;
     if (!conversationId) return;
 
-    socket.emit("joinConversation", conversationId);
+    socket.emit("joinConversation", {
+      conversationId,
+      receiverId: otherUserId,
+    });
     socket.emit("markMessagesAsRead", { conversationId });
 
     return () => {
       socket.emit("leaveConversation", conversationId);
     };
-  }, [selectedChat?.conversation?._id]);
+  }, [selectedChat?.conversation?._id, otherUserId]);
 
   useEffect(() => {
     const handleNewMessage = (message) => {
@@ -282,6 +293,17 @@ export default function MessageList({
             </div>
           );
         })}
+        {isOtherUserTyping && (
+          <div className="flex justify-start">
+            <div className="bg-[#1f2c33] rounded-2xl rounded-bl-sm px-4 py-3 shadow max-w-20">
+              <div className="flex items-center gap-1">
+                <span className="w-1 h-1 bg-gray-300 rounded-full animate-bounce [animation-delay:0ms]"></span>
+                <span className="w-1 h-1 bg-gray-300 rounded-full animate-bounce [animation-delay:150ms]"></span>
+                <span className="w-1 h-1 bg-gray-300 rounded-full animate-bounce [animation-delay:300ms]"></span>
+              </div>
+            </div>
+          </div>
+        )}
         <div ref={messagesEndRef} />
       </div>
 

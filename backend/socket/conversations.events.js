@@ -3,9 +3,10 @@ import Message from "../models/Message.model.js";
 import { io } from "../index.js";
 
 export default function conversationsEvents(socket) {
-  socket.on("joinConversation", (conversationId) => {
+  socket.on("joinConversation", ({conversationId, receiverId}) => {
     socket.join(conversationId);
     socket.activeConversationId = conversationId;
+    socket.activeReceiverId = receiverId;
 
     console.log("Joined Room:", socket.id, "->", conversationId);
   });
@@ -18,6 +19,28 @@ export default function conversationsEvents(socket) {
     }
 
     console.log("Left Room:", socket.id, "->", conversationId);
+  });
+
+  socket.on("typingStart", ({ conversationId, receiverId }) => {
+    const senderId = socket.user.id;
+
+    if (receiverId) {
+      io.to(`user:${receiverId}`).emit("userTyping", {
+        conversationId: conversationId,
+        id: senderId,
+      });
+    }
+  });
+
+  socket.on("typingStop", ({ conversationId, receiverId }) => {
+    const senderId = socket.user.id;
+
+    if (receiverId) {
+      io.to(`user:${receiverId}`).emit("userStoppedTyping", {
+        conversationId: conversationId,
+        id: senderId,
+      });
+    }
   });
 
   socket.on("markMessagesAsRead", async ({ conversationId }) => {

@@ -8,6 +8,7 @@ const chatStore = (set, get) => ({
   pendingOpen: false,
   chatList: [],
   showSidebar: window.innerWidth < 768 ? true : true,
+  typingUsersByConversation: {},
 
   setSelectedChat: function (chat) {
     set({ selectedChat: chat });
@@ -27,6 +28,64 @@ const chatStore = (set, get) => ({
 
   setShowSidebar: function (value) {
     set({ showSidebar: value });
+  },
+
+  handleUserTyping: ({ conversationId, id }) => {
+    if (!conversationId || !id) return;
+
+    set((state) => ({
+      typingUsersByConversation: {
+        ...state.typingUsersByConversation,
+        [conversationId]: {
+          ...(state.typingUsersByConversation[conversationId] || {}),
+          [id]: true,
+        },
+      },
+    }));
+  },
+
+  handleUserStoppedTyping: ({ conversationId, id }) => {
+    if (!conversationId || !id) return;
+
+    set((state) => {
+      const currentConversationTyping =
+        state.typingUsersByConversation[conversationId] || {};
+
+      const updatedConversationTyping = { ...currentConversationTyping };
+      delete updatedConversationTyping[id];
+
+      const updatedTypingUsersByConversation = {
+        ...state.typingUsersByConversation,
+        [conversationId]: updatedConversationTyping,
+      };
+
+      if (Object.keys(updatedConversationTyping).length === 0) {
+        delete updatedTypingUsersByConversation[conversationId];
+      }
+
+      return {
+        typingUsersByConversation: updatedTypingUsersByConversation,
+      };
+    });
+  },
+
+  clearConversationTyping: (conversationId) => {
+    if (!conversationId) return;
+
+    set((state) => {
+      const updated = { ...state.typingUsersByConversation };
+      delete updated[conversationId];
+
+      return {
+        typingUsersByConversation: updated,
+      };
+    });
+  },
+
+  isUserTypingInConversation: ({ conversationId, id }) => {
+    if (!conversationId || !id) return false;
+
+    return !!get().typingUsersByConversation?.[conversationId]?.[id];
   },
 
   handleConversationUpdated: ({ conversation }) => {
@@ -65,15 +124,32 @@ const chatStore = (set, get) => ({
   },
 
   initConversationListeners: () => {
-    const { handleConversationUpdated } = get();
+    const {
+      handleConversationUpdated,
+      handleUserTyping,
+      handleUserStoppedTyping,
+    } = get();
 
     socket.off("conversationUpdated", handleConversationUpdated);
     socket.on("conversationUpdated", handleConversationUpdated);
+
+    socket.off("userTyping", handleUserTyping);
+    socket.on("userTyping", handleUserTyping);
+
+    socket.off("userStoppedTyping", handleUserStoppedTyping);
+    socket.on("userStoppedTyping", handleUserStoppedTyping);
   },
 
   cleanupConversationListeners: () => {
-    const { handleConversationUpdated } = get();
+    const {
+      handleConversationUpdated,
+      handleUserTyping,
+      handleUserStoppedTyping,
+    } = get();
+
     socket.off("conversationUpdated", handleConversationUpdated);
+    socket.off("userTyping", handleUserTyping);
+    socket.off("userStoppedTyping", handleUserStoppedTyping);
   },
 });
 
@@ -81,6 +157,13 @@ const useChatStore = create(
   persist(chatStore, {
     name: "chat-store",
     storage: createJSONStorage(() => sessionStorage),
+    partialize: (state) => ({
+      selectedChat: state.selectedChat,
+      panelMode: state.panelMode,
+      pendingOpen: state.pendingOpen,
+      chatList: state.chatList,
+      showSidebar: state.showSidebar,
+    }),
   }),
 );
 
