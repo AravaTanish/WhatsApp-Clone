@@ -14,6 +14,7 @@ export default function ChatPage() {
     setChatList,
     showSidebar,
     setShowSidebar,
+    selectedChat,
   } = useChatStore();
 
   useEffect(() => {
@@ -36,7 +37,9 @@ export default function ChatPage() {
       {showSidebar && (
         <div
           className="fixed inset-0 bg-black/40 z-10 md:hidden"
-          onClick={() => setShowSidebar(false)}
+          onClick={() => {
+            if (selectedChat) setShowSidebar(false);
+          }}
         />
       )}
 
@@ -44,7 +47,7 @@ export default function ChatPage() {
         <div
           className="fixed inset-0 z-10"
           onClick={() => {
-            setShowSidebar(false);
+            if (selectedChat) setShowSidebar(false);
           }}
         />
       )}
@@ -53,7 +56,7 @@ export default function ChatPage() {
         <div
           className="fixed inset-0 backdrop-blur-sm bg-black/30 z-10"
           onClick={() => {
-            setShowSidebar(false);
+            if (selectedChat) setShowSidebar(false);
             setPanelMode(null);
             setPendingOpen(false);
           }}

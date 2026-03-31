@@ -114,6 +114,7 @@ export const verify = async (req, res) => {
       success: true,
       message: "User verified successfully",
       isCompleted: user.isCompleted,
+      profilePicture: user.profilePicture ? user.profilePicture : "",
       accessToken,
       email: user.email,
       userId: user.userId ? user.userId : "No userId",
@@ -269,6 +270,7 @@ export const complete = async (req, res) => {
       success: true,
       userId: user.userId,
       id: user._id,
+      profilePicture: user.profilePicture,
       email: user.email,
       isCompleted: user.isCompleted,
       message: "Profile setup completed",
@@ -292,6 +294,7 @@ export const me = async (req, res) => {
       message: "User details fetched",
       userId: user.userId,
       id: user._id,
+      profilePicture: user.profilePicture,
       email: user.email,
       isCompleted: user.isCompleted,
     });

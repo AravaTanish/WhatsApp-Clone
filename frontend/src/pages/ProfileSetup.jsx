@@ -74,6 +74,7 @@ function ProfileSetup() {
     if (!imageFile) return;
     const handelUploadPhoto = async () => {
       try {
+        setIsValid(false);
         const formData = new FormData();
         if (imageFile) {
           formData.append("photo", imageFile);
@@ -91,6 +92,8 @@ function ProfileSetup() {
       } catch (error) {
         console.log(error);
         toast.error(error.response.data.message);
+      } finally {
+        setIsValid(true);
       }
     };
     handelUploadPhoto();
@@ -108,6 +111,7 @@ function ProfileSetup() {
     setImageFile(null);
     setPreview(null);
     setPhotoURL(null);
+    setIsValid(false);
 
     //if we upload 1.img and removed it again upload 1.img it doesnot show because ref not cleared so remove ref thats why this condition
     if (fileInputRef.current) {
@@ -122,6 +126,8 @@ function ProfileSetup() {
     } catch (error) {
       console.log(error);
       toast.error(error.response.data.message);
+    } finally {
+      setIsValid(true);
     }
   };
 
@@ -133,12 +139,14 @@ function ProfileSetup() {
         about,
       });
       if (response.data.success) {
-        const { userId, id, email, isCompleted } = response.data;
+        const { userId, id, email, isCompleted, profilePicture } =
+          response.data;
         setUser({
           userId,
           id,
           email,
           isCompleted,
+          profilePicture,
         });
         console.log("User login completed");
         navigate("/chat", { replace: true });

@@ -27,12 +27,14 @@ const AuthProvider = ({ children }) => {
       try {
         const response = await api.get("login/me");
         if (response.data.success) {
-          const { userId, id, email, isCompleted } = response.data;
+          const { userId, id, email, isCompleted, profilePicture } =
+            response.data;
           setUser({
             userId,
             id,
             email,
             isCompleted,
+            profilePicture,
           });
 
           socket.auth = { token };

@@ -15,7 +15,7 @@ function Login() {
   const [step, setStep] = useState("INPUT");
 
   const { email } = useAuthStore();
-  const setUser = useUserStore((state) => state.setUser);
+  const { setUser } = useUserStore();
   const navigate = useNavigate();
 
   // SEND OTP
@@ -45,7 +45,8 @@ function Login() {
       const response = await api.post("/login/verify", { email, otp });
 
       if (response.data.success) {
-        const { accessToken, userId, id, email, isCompleted } = response.data;
+        const { accessToken, userId, id, email, isCompleted, profilePicture } =
+          response.data;
 
         localStorage.setItem("token", accessToken);
 
@@ -54,6 +55,7 @@ function Login() {
           id,
           email,
           isCompleted,
+          profilePicture,
         });
 
         navigate(isCompleted ? "/chat" : "/profile-setup", {
