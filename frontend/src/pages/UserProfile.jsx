@@ -32,9 +32,6 @@ export default function UserProfile() {
             setRequestId(response.data.requestId);
             setRequestMessage(response.data.requestMessage);
           }
-          if (response.data.message !== "No relation") {
-            toast.success(response.data.message);
-          }
         }
       } catch (error) {
         toast.error(error.response?.data?.message);

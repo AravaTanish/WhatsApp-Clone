@@ -16,7 +16,7 @@ createRoot(document.getElementById("root")).render(
       position="top-center"
       reverseOrder={false}
       toastOptions={{
-        duration: 4000,
+        duration: 3000,
         style: {
           background: "#2a2f32",
           color: "#fff",
