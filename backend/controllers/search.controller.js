@@ -1,27 +1,22 @@
 import User from "../models/User.model.js";
+import asyncHandler from "../utils/asyncHandler.js";
+import AppError from "../utils/appError.js";
 
-export const searchUsers = async (req, res) => {
-  try {
-    const { search } = req.query;
-    const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const users = await User.find(
-      {
-        userId: {
-          $regex: escapedSearch,
-          $options: "i",
-        },
+export const searchUsers = asyncHandler(async (req, res) => {
+  const { search } = req.query;
+  const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const users = await User.find(
+    {
+      userId: {
+        $regex: escapedSearch,
+        $options: "i",
       },
-      "userId profilePicture",
-    )
-      .limit(20)
-      .lean();
-    return res
-      .status(200)
-      .json({ success: true, message: "Users fetched", users });
-  } catch (error) {
-    console.error("Search error:", error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal server error" });
-  }
-};
+    },
+    "userId profilePicture",
+  )
+    .limit(20)
+    .lean();
+  return res
+    .status(200)
+    .json({ success: true, message: "Users fetched", users });
+});

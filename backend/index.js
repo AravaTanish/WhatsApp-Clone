@@ -14,6 +14,8 @@ import friendRoutes from "./routes/friend.routes.js";
 import conversationRoutes from "./routes/conversation.routes.js";
 import messageRoutes from "./routes/message.routes.js";
 
+import globalErrorMiddleware from "./middlewares/globalError.middleware.js";
+
 import cookieParser from "cookie-parser";
 import cors from "cors";
 
@@ -48,6 +50,8 @@ app.use("/backend/search", searchRoutes);
 app.use("/backend/friends", friendRoutes);
 app.use("/backend/conversations", conversationRoutes);
 app.use("/backend/message", messageRoutes);
+
+app.use(globalErrorMiddleware);
 
 connectDB();
 
