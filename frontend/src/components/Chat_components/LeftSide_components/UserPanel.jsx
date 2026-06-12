@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { FiX } from "react-icons/fi";
-import Loading from "../LoadingScreen/Loading.jsx";
-import api from "../../api/axios.js";
-import useUserStore from "../../store/userStore.js";
+import Loading from "../../LoadingScreen/Loading.jsx";
+import api from "../../../api/axios.js";
+import useUserStore from "../../../store/userStore.js";
 import { useNavigate } from "react-router-dom";
 
 export default function UserPanel({ mode, isOpen, onClose }) {

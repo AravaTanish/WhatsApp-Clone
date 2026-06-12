@@ -1,6 +1,6 @@
 import { FiX } from "react-icons/fi";
 import { createPortal } from "react-dom";
-import api from "../../api/axios.js";
+import api from "../../../api/axios.js";
 import toast from "react-hot-toast";
 
 export default function PendingRequestModal({ isOpen, onClose, request }) {

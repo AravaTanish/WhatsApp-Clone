@@ -1,7 +1,8 @@
 import { useEffect, useRef } from "react";
 import { BsSendFill } from "react-icons/bs";
-import useChatStore from "../../store/chatStore.js";
-import socket from "../../socket/socket.js";
+import { FaPlus } from "react-icons/fa6";
+import useChatStore from "../../../store/chatStore.js";
+import socket from "../../../socket/socket.js";
 
 export default function MessageInput({
   newMessage,
@@ -9,13 +10,13 @@ export default function MessageInput({
   handleSend,
   selectionMode,
 }) {
-  const { selectedChat } = useChatStore();
+  const { selectedChat, setSelectedImages } = useChatStore();
   const otherUserId = selectedChat.user._id;
 
   const typingTimeoutRef = useRef(null);
   const isTypingRef = useRef(false);
 
-  const conversationId = selectedChat?.conversation?._id;
+  const conversationId = selectedChat?.conversationId;
 
   const emitTypingStart = () => {
     if (!conversationId || isTypingRef.current) return;
@@ -91,10 +92,27 @@ export default function MessageInput({
     };
   }, [conversationId]);
 
+  const handleSelectedImages = (e) => {
+    const file = Array.from(e.target.files);
+    setSelectedImages(file);
+  };
+
   if (selectionMode) return null;
 
   return (
     <div className="flex items-center gap-4 px-4 md:px-6 py-4 bg-[#111b21] border-t border-gray-800">
+      <label htmlFor="media-input">
+        <FaPlus />
+      </label>
+      <input
+        id="media-input"
+        type="file"
+        multiple
+        accept="image/*"
+        hidden
+        onChange={handleSelectedImages}
+      />
+
       <input
         type="text"
         placeholder="Type a message"

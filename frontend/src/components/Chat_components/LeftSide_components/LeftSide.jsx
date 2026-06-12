@@ -1,6 +1,6 @@
-import LeftRail from "../Chat_components/LeftRail.jsx";
-import Sidebar from "../Chat_components/Sidebar.jsx";
-import useChatStore from "../../store/chatStore.js";
+import LeftRail from "./LeftRail.jsx";
+import Sidebar from "./Sidebar.jsx";
+import useChatStore from "../../../store/chatStore.js";
 
 function LeftSide() {
   const { showSidebar } = useChatStore();

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { FiCheck, FiX } from "react-icons/fi";
-import Loading from "../LoadingScreen/Loading.jsx";
-import api from "../../api/axios.js";
+import Loading from "../../LoadingScreen/Loading.jsx";
+import api from "../../../api/axios.js";
 import PendingRequestModal from "./PendingRequestModal.jsx";
 import toast from "react-hot-toast";
 

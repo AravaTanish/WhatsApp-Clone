@@ -9,6 +9,7 @@ const chatStore = (set, get) => ({
   chatList: [],
   showSidebar: window.innerWidth < 768 ? true : true,
   typingUsersByConversation: {},
+  selectedImages: [],
 
   setSelectedChat: function (chat) {
     set({ selectedChat: chat });
@@ -28,6 +29,10 @@ const chatStore = (set, get) => ({
 
   setShowSidebar: function (value) {
     set({ showSidebar: value });
+  },
+
+  setSelectedImages: function (value) {
+    set({ selectedImages: value });
   },
 
   handleUserTyping: ({ conversationId, id }) => {

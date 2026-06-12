@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import useUserStore from "../../store/userStore.js";
+import useUserStore from "../../../store/userStore.js";
 import DeleteModal from "./DeleteModal.jsx";
 import SelectionBar from "./SelectionBar.jsx";
 import { IoCheckmark, IoCheckmarkDone } from "react-icons/io5";
-import useChatStore from "../../store/chatStore.js";
-import socket from "../../socket/socket.js";
+import useChatStore from "../../../store/chatStore.js";
+import socket from "../../../socket/socket.js";
 
 const now = Date.now();
 
@@ -18,7 +18,7 @@ export default function MessageList({
   const { user } = useUserStore();
   const { selectedChat, isUserTypingInConversation } = useChatStore();
 
-  const conversationId = selectedChat?.conversation?._id;
+  const conversationId = selectedChat?.conversationId;
   const otherUserId = selectedChat?.user?._id;
 
   const isOtherUserTyping = isUserTypingInConversation({
@@ -35,7 +35,7 @@ export default function MessageList({
   }, [messages, isOtherUserTyping]);
 
   useEffect(() => {
-    const conversationId = selectedChat?.conversation?._id;
+    const conversationId = selectedChat?.conversationId;
     if (!conversationId) return;
 
     socket.emit("joinConversation", {
@@ -47,13 +47,11 @@ export default function MessageList({
     return () => {
       socket.emit("leaveConversation", conversationId);
     };
-  }, [selectedChat?.conversation?._id, otherUserId]);
+  }, [selectedChat?.conversationId, otherUserId]);
 
   useEffect(() => {
-    const handleNewMessage = (message) => {
-      if (message.sender !== user.id) {
-        setMessages((prev) => [...prev, message]);
-      }
+    const handleNewMessages = (messages) => {
+      setMessages((prev) => [...prev, ...messages]);
     };
 
     const handleDeleteForMe = ({ messageIds, id }) => {
@@ -133,14 +131,14 @@ export default function MessageList({
       );
     };
 
-    socket.on("newMessage", handleNewMessage);
+    socket.on("newMessages", handleNewMessages);
     socket.on("messagesDeletedForMe", handleDeleteForMe);
     socket.on("messagesDeletedForEveryone", handleDeleteForEveryone);
     socket.on("messagesDeliveredUpdate", handleMessagesDeliveredUpdate);
     socket.on("messagesReadUpdate", handleMessagesReadUpdate);
 
     return () => {
-      socket.off("newMessage", handleNewMessage);
+      socket.off("newMessages", handleNewMessages);
       socket.off("messagesDeletedForMe", handleDeleteForMe);
       socket.off("messagesDeletedForEveryone", handleDeleteForEveryone);
       socket.off("messagesDeliveredUpdate", handleMessagesDeliveredUpdate);
@@ -276,13 +274,21 @@ export default function MessageList({
                       : "bg-[#1f2c33] rounded-bl-sm"
                   }`}
                 >
-                  <p>
-                    {msg.deletedForEveryone
-                      ? msg.sender === user.id
+                  {msg.deletedForEveryone ? (
+                    <p>
+                      {msg.sender === user.id
                         ? "You deleted this message"
-                        : "This message was deleted"
-                      : msg.text}
-                  </p>
+                        : "This message was deleted"}
+                    </p>
+                  ) : msg.contentType === "image" ? (
+                    <img
+                      src={msg.mediaUrl}
+                      alt="Image"
+                      className="max-w-[250px] rounded-lg object-cover cursor-pointer"
+                    />
+                  ) : (
+                    <p>{msg.text}</p>
+                  )}
 
                   <div className="flex items-center justify-end gap-1 text-[10px] mt-1 opacity-70">
                     <span>{time}</span>

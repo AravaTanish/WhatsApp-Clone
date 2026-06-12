@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { FiMessageCircle } from "react-icons/fi";
+import { FiMessageCircle, FiArrowLeft } from "react-icons/fi";
 import { TiUserAdd, TiUserDelete } from "react-icons/ti";
 import api from "../api/axios.js";
 import Loading from "../components/LoadingScreen/Loading.jsx";
@@ -13,8 +13,13 @@ export default function UserProfile() {
   const [requestMessage, setRequestMessage] = useState("");
   const [requestId, setRequestId] = useState("");
   const [loading, setLoading] = useState(false);
-  const { setSelectedChat, setPanelMode, setPendingOpen, setShowSidebar } =
-    useChatStore();
+  const {
+    setSelectedChat,
+    setPanelMode,
+    setPendingOpen,
+    setShowSidebar,
+    setSelectedImages,
+  } = useChatStore();
   const navigate = useNavigate();
 
   const { userId } = useParams();
@@ -121,14 +126,15 @@ export default function UserProfile() {
     try {
       const response = await api.get(`/conversations/${user._id}`);
       if (response.data.success) {
-        if (response.data.conversation) {
+        if (response.data.conversationId) {
           setSelectedChat({
             user: user,
-            conversation: response.data.conversation,
+            conversationId: response.data.conversationId,
           });
         } else {
           setSelectedChat({ user: user });
         }
+        setSelectedImages([]);
       }
     } catch (error) {
       console.log(error);
@@ -155,6 +161,16 @@ export default function UserProfile() {
   return (
     <div className="min-h-screen bg-auth-gradient text-white p-6">
       <div className="max-w-3xl mx-auto bg-[#2a2f32] rounded-2xl shadow-lg p-8 border border-[#1f2c33]">
+        {/* Back Button */}
+        <div className="mb-6">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 text-gray-300 hover:text-white transition"
+          >
+            <FiArrowLeft size={22} />
+            <span>Back</span>
+          </button>
+        </div>
         {/* Profile Header */}
         <div className="flex flex-col items-center text-center">
           <img

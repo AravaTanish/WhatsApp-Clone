@@ -4,6 +4,8 @@ import { io } from "../index.js";
 import { onlineUsers } from "../socket/onlineUsers.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import AppError from "../utils/appError.js";
+import { emitConversationUpdate } from "../utils/emitConversationUpdate.js";
+import { uploadImagesToCloudinary } from "../utils/uploadImagesToCloudinary.js";
 
 export const fetchMessages = asyncHandler(async (req, res) => {
   const currentUserId = req.user.id;
@@ -23,16 +25,21 @@ export const fetchMessages = asyncHandler(async (req, res) => {
 });
 
 export const sendMessage = asyncHandler(async (req, res) => {
-  const { messageContent } = req.body;
+  const files = req.files || [];
+  if (files.length > 10) {
+    throw new AppError("More than 10 images", 400);
+  }
+
+  const { messageContent, conversationId } = req.body;
   const receiverId = req.params.id;
   const senderId = req.user.id;
 
-  let conversation = await Conversation.findOne({
-    conversationType: "private",
-    participants: { $all: [senderId, receiverId] },
-  });
+  if (!files.length && !messageContent?.trim()) {
+    throw new AppError("Message cannot be empty", 400);
+  }
 
-  if (!conversation) {
+  let conversation;
+  if (!conversationId || conversationId === "") {
     conversation = await Conversation.create({
       participants: [senderId, receiverId],
       unreadCounts: [
@@ -40,22 +47,47 @@ export const sendMessage = asyncHandler(async (req, res) => {
         { user: receiverId, count: 0 },
       ],
     });
+  } else {
+    conversation = await Conversation.findById(conversationId);
+    if (!conversation) {
+      throw new AppError("Conversation not found", 404);
+    }
   }
 
-  conversation = await conversation.populate(
-    "participants",
-    "userId profilePicture about",
+  // conversation = await conversation.populate(
+  //   "participants",
+  //   "userId profilePicture about",
+  // );
+
+  const urls = await uploadImagesToCloudinary(
+    files,
+    `Conversation:${conversation._id}/media/images`,
   );
 
-  const message = await Message.create({
+  console.log("Urls:", urls);
+
+  const imageMessages = urls.map((url) => ({
     sender: senderId,
     conversation: conversation._id,
-    text: messageContent,
-  });
+    contentType: "image",
+    mediaUrl: url,
+  }));
+
+  const createdMessages = urls.length
+    ? await Message.insertMany(imageMessages)
+    : [
+        await Message.create({
+          sender: senderId,
+          conversation: conversation._id,
+          text: messageContent,
+        }),
+      ];
+
+  const lastMessage = createdMessages[createdMessages.length - 1];
 
   conversation.lastMessagePerUser = [
-    { user: senderId, message: message._id },
-    { user: receiverId, message: message._id },
+    { user: senderId, message: lastMessage._id },
+    { user: receiverId, message: lastMessage._id },
   ];
 
   const unread = conversation.unreadCounts.find(
@@ -63,7 +95,7 @@ export const sendMessage = asyncHandler(async (req, res) => {
   );
 
   if (unread) {
-    unread.count += 1;
+    unread.count += createdMessages.length;
   }
 
   const receiverSockets = onlineUsers.get(receiverId.toString());
@@ -90,15 +122,23 @@ export const sendMessage = asyncHandler(async (req, res) => {
   if (isReceiverViewingThisChat) {
     const now = new Date();
 
-    message.deliveredTo.push({
-      user: receiverId,
-      deliveredAt: now,
-    });
-
-    message.readBy.push({
-      user: receiverId,
-      readAt: now,
-    });
+    await Message.updateMany(
+      {
+        _id: { $in: createdMessages.map((msg) => msg._id) },
+      },
+      {
+        $push: {
+          deliveredTo: {
+            user: receiverId,
+            deliveredAt: now,
+          },
+          readBy: {
+            user: receiverId,
+            readAt: now,
+          },
+        },
+      },
+    );
 
     conversation.unreadCounts = conversation.unreadCounts.map((item) =>
       item.user.toString() === receiverId.toString()
@@ -106,54 +146,53 @@ export const sendMessage = asyncHandler(async (req, res) => {
         : item,
     );
 
-    await message.save();
-
     io.to(`user:${senderId}`).emit("messagesReadUpdate", {
-      messageIds: [message._id],
+      messageIds: createdMessages.map((msg) => msg._id),
       id: receiverId,
       readAt: now,
     });
   } else if (isReceiverOnline) {
     const deliveredAt = new Date();
 
-    message.deliveredTo.push({
-      user: receiverId,
-      deliveredAt,
-    });
-
-    await message.save();
+    await Message.updateMany(
+      {
+        _id: { $in: createdMessages.map((msg) => msg._id) },
+      },
+      {
+        $push: {
+          deliveredTo: {
+            user: receiverId,
+            deliveredAt,
+          },
+        },
+      },
+    );
 
     io.to(`user:${senderId}`).emit("messagesDeliveredUpdate", {
-      updates: [
-        {
-          messageId: message._id,
-          id: receiverId,
-          deliveredAt,
-        },
-      ],
+      updates: createdMessages.map((msg) => ({
+        messageId: msg._id,
+        id: receiverId,
+        deliveredAt,
+      })),
     });
   }
 
   await conversation.save();
 
-  const updatedConversation = await Conversation.findById(conversation._id)
-    .populate("participants", "userId profilePicture about")
-    .populate("lastMessagePerUser.message");
-
-  io.to(conversation._id.toString()).emit("newMessage", message);
-
-  io.to(`user:${receiverId}`).emit("conversationUpdated", {
-    conversation: updatedConversation,
+  const updatedMessages = await Message.find({
+    _id: {
+      $in: createdMessages.map((msg) => msg._id),
+    },
   });
 
-  io.to(`user:${senderId}`).emit("conversationUpdated", {
-    conversation: updatedConversation,
-  });
+  io.to(conversation._id.toString()).emit("newMessages", updatedMessages);
+
+  await emitConversationUpdate(conversation._id, [senderId, receiverId]);
 
   return res.status(200).json({
     success: true,
-    conversation: conversation,
-    sentMessage: message,
+    conversationId: conversation._id,
+    sentMessages: updatedMessages,
     message: "Message sent successfully",
   });
 });
@@ -209,12 +248,11 @@ export const deleteMessageForMe = asyncHandler(async (req, res) => {
     }
   }
 
-  const updatedConversation = await Conversation.findById(conversationId)
-    .populate("participants", "userId profilePicture about")
-    .populate("lastMessagePerUser.message");
+  // const updatedConversation = await Conversation.findById(conversationId)
+  //   .populate("participants", "userId profilePicture about")
+  //   .populate("lastMessagePerUser.message");
 
   const userSockets = onlineUsers.get(id);
-  console.log(userSockets);
   if (userSockets) {
     userSockets.forEach((socketId) => {
       io.to(socketId).emit("messagesDeletedForMe", {
@@ -222,11 +260,13 @@ export const deleteMessageForMe = asyncHandler(async (req, res) => {
         id,
       });
 
-      io.to(socketId).emit("conversationUpdated", {
-        conversation: updatedConversation,
-      });
+      // io.to(socketId).emit("conversationUpdated", {
+      //   conversation: updatedConversation,
+      // });
     });
   }
+
+  await emitConversationUpdate(conversationId, [id]);
 
   return res.status(200).json({
     success: true,
@@ -239,15 +279,16 @@ export const deleteMessageForEveryone = asyncHandler(async (req, res) => {
   const { messageIds } = req.body;
 
   if (!messageIds || messageIds.length === 0) {
-    return res.status(400).json({
-      success: false,
-      message: "No messages selected",
-    });
+    throw new AppError("Messages are not selected", 404);
   }
 
   const messages = await Message.find({
     _id: { $in: messageIds },
   });
+
+  if (messages.length === 0) {
+    throw new AppError("Messages not found", 404);
+  }
 
   const conversationId = messages[0].conversation;
 
@@ -292,17 +333,22 @@ export const deleteMessageForEveryone = asyncHandler(async (req, res) => {
     },
   );
 
-  const updatedConversation = await Conversation.findById(conversationId)
-    .populate("participants", "userId profilePicture about")
-    .populate("lastMessagePerUser.message");
+  // const updatedConversation = await Conversation.findById(conversationId)
+  //   .populate("participants", "userId profilePicture about")
+  //   .populate("lastMessagePerUser.message");
 
   io.to(conversationId.toString()).emit("messagesDeletedForEveryone", {
     messageIds,
   });
 
-  io.to(conversationId.toString()).emit("conversationUpdated", {
-    conversation: updatedConversation,
-  });
+  await emitConversationUpdate(
+    conversationId,
+    conversation.participants.map((p) => p._id || p),
+  );
+
+  // io.to(conversationId.toString()).emit("conversationUpdated", {
+  //   conversation: updatedConversation,
+  // });
 
   return res.status(200).json({
     success: true,

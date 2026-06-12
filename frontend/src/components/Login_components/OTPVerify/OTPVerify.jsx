@@ -1,12 +1,13 @@
 import "./OTPVerify.css";
 import { useEffect, useRef, useState } from "react";
 
-function OTPVerify({ handelVerify, handelResend }) {
+function OTPVerify({ setStep, handelVerify, handelResend }) {
   const [otpArray, setOtpArray] = useState(Array(6).fill(""));
-  const [timeLeft, setTimeLeft] = useState(600); // 10 minutes
+  const [timeLeft, setTimeLeft] = useState(240); // 10 minutes
   const inputsRef = useRef([]);
   let OTP = otpArray.join("");
   let disabled = OTP.length === 6 ? false : true;
+
   // Countdown timer
   useEffect(() => {
     if (timeLeft === 0) return;
@@ -85,7 +86,7 @@ function OTPVerify({ handelVerify, handelResend }) {
             disabled={timeLeft > 0}
             onClick={() => {
               handelResend();
-              setTimeLeft(600);
+              setTimeLeft(240);
             }}
             className="flex-1 rounded-lg border border-gray-600 py-2.5 sm:py-3
                        text-xs sm:text-sm text-green-400
@@ -104,6 +105,12 @@ function OTPVerify({ handelVerify, handelResend }) {
           className={`${disabled ? "cursor-not-allowed opacity-50" : ""} mt-5 sm:mt-6 w-full rounded-lg bg-green-600 py-2.5 sm:py-3 font-medium text-black hover:bg-green-500 transition`}
         >
           Verify
+        </button>
+        <button
+          onClick={() => setStep("INPUT")}
+          className="mt-3 w-full rounded-lg border border-gray-600 py-2.5 sm:py-3 text-gray-300 hover:bg-[#1f2c33] transition"
+        >
+          Change Email
         </button>
       </div>
     </div>

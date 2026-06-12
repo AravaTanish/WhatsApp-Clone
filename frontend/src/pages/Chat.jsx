@@ -1,6 +1,6 @@
 import { useEffect } from "react";
-import LeftSide from "../components/Chat_components/LeftSide.jsx";
-import RightSide from "../components/Chat_components/RightSide.jsx";
+import LeftSide from "../components/Chat_components/LeftSide_components/LeftSide.jsx";
+import RightSide from "../components/Chat_components/RightSide_components/RightSide.jsx";
 import toast from "react-hot-toast";
 import api from "../api/axios.js";
 import useChatStore from "../store/chatStore.js";

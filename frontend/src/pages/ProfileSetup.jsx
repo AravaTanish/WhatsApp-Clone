@@ -4,7 +4,6 @@ import { TfiReload } from "react-icons/tfi";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import useUserStore from "../store/userStore.js";
-import socket from "../socket/socket.js";
 
 function ProfileSetup() {
   const DEFAULT_AVATAR = import.meta.env.VITE_DEFAULT_AVATAR;
@@ -151,7 +150,6 @@ function ProfileSetup() {
         console.log("User login completed");
         navigate("/chat", { replace: true });
         toast.success(response.data.message);
-        socket.emit("addUser", id);
       }
     } catch (error) {
       console.log(error);

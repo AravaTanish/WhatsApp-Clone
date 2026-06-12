@@ -8,12 +8,12 @@ import { MdOutlinePendingActions } from "react-icons/md";
 import { LuMessageCircleDashed } from "react-icons/lu";
 import UserPanel from "./UserPanel.jsx";
 import PendingRequestsPanel from "./PendingRequestPanel.jsx";
-import useChatStore from "../../store/chatStore.js";
-import useUserStore from "../../store/userStore.js";
+import useChatStore from "../../../store/chatStore.js";
+import useUserStore from "../../../store/userStore.js";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
-import api from "../../api/axios.js";
-import socket from "../../socket/socket.js";
+import api from "../../../api/axios.js";
+import socket from "../../../socket/socket.js";
 
 export default function LeftRail() {
   const { panelMode, setPanelMode, pendingOpen, setPendingOpen } =

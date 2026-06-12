@@ -7,7 +7,6 @@ import api from "../api/axios.js";
 import Loading from "../components/LoadingScreen/Loading.jsx";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
-import socket from "../socket/socket.js";
 
 function Login() {
   const [sendOtpLoading, setSendOtpLoading] = useState(false);
@@ -62,10 +61,6 @@ function Login() {
           replace: true,
         });
 
-        if (isCompleted) {
-          socket.emit("addUser", id);
-        }
-
         toast.success(response.data.message);
       }
     } catch (error) {
@@ -110,7 +105,7 @@ function Login() {
     <>
       {step === "INPUT" && <AuthInput handelSendOTP={handelSendOTP} />}
       {step === "OTP" && (
-        <OTPVerify handelVerify={handelVerify} handelResend={handelResend} />
+        <OTPVerify setStep={setStep} handelVerify={handelVerify} handelResend={handelResend} />
       )}
     </>
   );

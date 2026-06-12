@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { FiSearch, FiMoreVertical } from "react-icons/fi";
-import useChatStore from "../../store/chatStore.js";
-import useUserStore from "../../store/userStore.js";
+import useChatStore from "../../../store/chatStore.js";
+import useUserStore from "../../../store/userStore.js";
 
 export default function Sidebar() {
   const {
@@ -9,6 +9,7 @@ export default function Sidebar() {
     selectedChat,
     setSelectedChat,
     setShowSidebar,
+    setSelectedImages,
     initConversationListeners,
     cleanupConversationListeners,
     isUserTypingInConversation,
@@ -32,8 +33,10 @@ export default function Sidebar() {
         about: otherUser.about,
         profilePicture: otherUser.profilePicture,
       },
-      conversation: chat,
+      conversationId: chat._id,
     });
+    
+    setSelectedImages([]);
 
     if (window.innerWidth < 768) {
       setShowSidebar(false);
@@ -62,6 +65,7 @@ export default function Sidebar() {
 
       {/* Chat List */}
       <div className="overflow-y-auto">
+        {console.log("ChatList: ",chatList)}
         {chatList.map((chat) => {
           const otherUser = chat.participants.find((p) => p._id !== user.id);
           const isTyping = isUserTypingInConversation({
@@ -93,10 +97,11 @@ export default function Sidebar() {
               }}
               className={`flex items-center gap-3 px-4 py-4 cursor-pointer border-b border-[#1f2c33]
                           ${
-                            selectedChat?.conversation?._id === chat._id
+                            selectedChat?.conversationId === chat._id
                               ? "bg-[#1f2c33]"
                               : "hover:bg-[#1f2c33]"
-                          }`}
+                          }`
+                        }
             >
               <img
                 src={otherUser?.profilePicture}

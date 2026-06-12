@@ -6,8 +6,8 @@ import {
   FiArrowLeft,
 } from "react-icons/fi";
 import { useEffect, useState } from "react";
-import socket from "../../socket/socket.js";
-import useChatStore from "../../store/chatStore";
+import socket from "../../../socket/socket.js";
+import useChatStore from "../../../store/chatStore.js";
 
 export default function ChatHeader() {
   const [isOnline, setIsOnline] = useState(false);
@@ -48,7 +48,7 @@ export default function ChatHeader() {
   }, [selectedChat]);
 
   return (
-    <div className="flex items-center justify-between px-4 md:px-6 py-4 bg-[#111b21] border-b border-gray-800">
+    <div className="flex items-center justify-between px-4 md:px-6 py-4 bg-[#111b21] border-b border-gray-800 z-6">
       <div className="flex items-center gap-3">
         {/* Mobile Menu */}
         <button

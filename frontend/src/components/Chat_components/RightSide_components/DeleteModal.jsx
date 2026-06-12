@@ -1,6 +1,6 @@
-import api from "../../api/axios.js";
+import api from "../../../api/axios.js";
 import toast from "react-hot-toast";
-import useChatStore from "../../store/chatStore.js";
+import useChatStore from "../../../store/chatStore.js";
 
 export default function DeleteModal({
   allValidForEveryone,
@@ -14,7 +14,7 @@ export default function DeleteModal({
       const response = await api.delete("/message/delete-me", {
         data: {
           messageIds: selectedMessages,
-          conversationId: selectedChat.conversation._id,
+          conversationId: selectedChat.conversationId,
         },
       });
 
