@@ -9,7 +9,7 @@ export default function Sidebar() {
     selectedChat,
     setSelectedChat,
     setShowSidebar,
-    setSelectedImages,
+    setSelectedFiles,
     initConversationListeners,
     cleanupConversationListeners,
     isUserTypingInConversation,
@@ -36,7 +36,7 @@ export default function Sidebar() {
       conversationId: chat._id,
     });
     
-    setSelectedImages([]);
+    setSelectedFiles([]);
 
     if (window.innerWidth < 768) {
       setShowSidebar(false);

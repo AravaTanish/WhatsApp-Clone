@@ -18,7 +18,7 @@ export default function UserProfile() {
     setPanelMode,
     setPendingOpen,
     setShowSidebar,
-    setSelectedImages,
+    setSelectedFiles,
   } = useChatStore();
   const navigate = useNavigate();
 
@@ -134,7 +134,7 @@ export default function UserProfile() {
         } else {
           setSelectedChat({ user: user });
         }
-        setSelectedImages([]);
+        setSelectedFiles([]);
       }
     } catch (error) {
       console.log(error);

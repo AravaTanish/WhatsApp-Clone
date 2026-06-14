@@ -9,7 +9,7 @@ const chatStore = (set, get) => ({
   chatList: [],
   showSidebar: window.innerWidth < 768 ? true : true,
   typingUsersByConversation: {},
-  selectedImages: [],
+  selectedFiles: [],
 
   setSelectedChat: function (chat) {
     set({ selectedChat: chat });
@@ -31,8 +31,8 @@ const chatStore = (set, get) => ({
     set({ showSidebar: value });
   },
 
-  setSelectedImages: function (value) {
-    set({ selectedImages: value });
+  setSelectedFiles: function (value) {
+    set({ selectedFiles: value });
   },
 
   handleUserTyping: ({ conversationId, id }) => {

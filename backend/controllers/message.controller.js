@@ -5,7 +5,12 @@ import { onlineUsers } from "../socket/onlineUsers.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import AppError from "../utils/appError.js";
 import { emitConversationUpdate } from "../utils/emitConversationUpdate.js";
-import { uploadImagesToCloudinary } from "../utils/uploadImagesToCloudinary.js";
+import {
+  uploadImagesToCloudinary,
+  uploadVideosToCloudinary,
+} from "../utils/uploadToCloudinary.js";
+import { compressImages } from "../utils/compressImages.js";
+import { deleteFiles } from "../utils/deleteFiles.js";
 
 export const fetchMessages = asyncHandler(async (req, res) => {
   const currentUserId = req.user.id;
@@ -38,6 +43,10 @@ export const sendMessage = asyncHandler(async (req, res) => {
     throw new AppError("Message cannot be empty", 400);
   }
 
+  const imageFiles = files.filter((file) => file.mimetype.startsWith("image/"));
+  const videoFiles = files.filter((file) => file.mimetype.startsWith("video/"));
+  const compressedImages = await compressImages(imageFiles);
+
   let conversation;
   if (!conversationId || conversationId === "") {
     conversation = await Conversation.create({
@@ -59,29 +68,54 @@ export const sendMessage = asyncHandler(async (req, res) => {
   //   "userId profilePicture about",
   // );
 
-  const urls = await uploadImagesToCloudinary(
-    files,
+  const imageUrls = await uploadImagesToCloudinary(
+    compressedImages,
     `Conversation:${conversation._id}/media/images`,
   );
 
-  console.log("Urls:", urls);
+  const videoUrls = await uploadVideosToCloudinary(
+    videoFiles,
+    `Conversation:${conversation._id}/media/videos`,
+  );
 
-  const imageMessages = urls.map((url) => ({
+  const filesToDelete = [
+    ...compressedImages.flatMap((file) => [file.path, file.originalPath]),
+    ...videoFiles.map((file) => file.path),
+  ];
+
+  await deleteFiles(filesToDelete);
+
+  // console.log("Urls:", urls);
+
+  const imageMessages = imageUrls.map((url) => ({
     sender: senderId,
     conversation: conversation._id,
     contentType: "image",
     mediaUrl: url,
   }));
 
-  const createdMessages = urls.length
-    ? await Message.insertMany(imageMessages)
-    : [
-        await Message.create({
-          sender: senderId,
-          conversation: conversation._id,
-          text: messageContent,
-        }),
-      ];
+  const videoMessages = videoUrls.map((url) => ({
+    sender: senderId,
+    conversation: conversation._id,
+    contentType: "video",
+    mediaUrl: url,
+  }));
+
+  const mediaMessages = [...imageMessages, ...videoMessages];
+
+  let createdMessages;
+
+  if (mediaMessages.length > 0) {
+    createdMessages = await Message.insertMany(mediaMessages);
+  } else {
+    createdMessages = [
+      await Message.create({
+        sender: senderId,
+        conversation: conversation._id,
+        text: messageContent,
+      }),
+    ];
+  }
 
   const lastMessage = createdMessages[createdMessages.length - 1];
 

@@ -6,14 +6,16 @@ import useChatStore from "../../../store/chatStore.js";
 import { useEffect } from "react";
 import toast from "react-hot-toast";
 import api from "../../../api/axios.js";
-import ImagePreview from "../Image_components/ImagePreview.jsx";
+import MediaPreview from "../Media_components/MediaPreview.jsx";
+import Loading from "../../LoadingScreen/Loading.jsx";
 
 function RightSide() {
-  const { selectedChat, setSelectedChat, selectedImages, setSelectedImages } =
+  const { selectedChat, setSelectedChat, selectedFiles, setSelectedFiles } =
     useChatStore();
   const [newMessage, setNewMessage] = useState("");
   const [messages, setMessages] = useState([]);
   const [selectionMode, setSelectionMode] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     if (selectedChat === null || !selectedChat.conversationId) return;
@@ -34,11 +36,12 @@ function RightSide() {
 
   const handleSend = async () => {
     if (!selectedChat || !selectedChat.user) return;
-    if (!newMessage.trim() && !selectedImages.length) return;
+    if (!newMessage.trim() && !selectedFiles.length) return;
     try {
-      if (selectedImages.length > 10) {
+      if (selectedFiles.length > 10) {
         toast.error("You can send maximum 10 images at once");
       }
+      if (selectedFiles.length) setUploading(true);
       const receiverId = selectedChat.user._id;
       const conversationId = selectedChat.conversationId
         ? selectedChat.conversationId
@@ -48,8 +51,8 @@ function RightSide() {
 
       formData.append("conversationId", conversationId);
       formData.append("messageContent", newMessage);
-      if (selectedImages.length) {
-        selectedImages.forEach((image) => {
+      if (selectedFiles.length) {
+        selectedFiles.forEach((image) => {
           formData.append("images", image);
         });
       }
@@ -69,8 +72,9 @@ function RightSide() {
       console.log(error);
       toast.error(error.response?.data?.message);
     } finally {
+      setUploading(false);
       setNewMessage("");
-      setSelectedImages([]);
+      setSelectedFiles([]);
     }
   };
 
@@ -93,9 +97,12 @@ function RightSide() {
     <div className="flex-1 flex flex-col bg-[#0b141a] relative">
       <ChatHeader />
 
-      {selectedImages.length !== 0 && (
+      {selectedFiles.length !== 0 && (
         <div className="absolute inset-x-0 top-18 bottom-0 z-5">
-          <ImagePreview handleSend={handleSend} />
+          {uploading && (
+            <Loading message={"Please wait, files are uploading..."} />
+          )}
+          {!uploading && <MediaPreview handleSend={handleSend} />}
         </div>
       )}
 
@@ -106,7 +113,7 @@ function RightSide() {
         setSelectionMode={setSelectionMode}
       />
 
-      {selectedImages.length === 0 && (
+      {selectedFiles.length === 0 && (
         <MessageInput
           newMessage={newMessage}
           setNewMessage={setNewMessage}

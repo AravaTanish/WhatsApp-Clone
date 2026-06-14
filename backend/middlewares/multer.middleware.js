@@ -7,28 +7,26 @@ const storage = multer.diskStorage({
   },
 
   filename: (req, file, cb) => {
-    const uniqueSuffix = `${Date.now()}-${Math.round(
-      Math.random() * 1e9
-    )}`;
+    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
 
-    cb(
-      null,
-      `${uniqueSuffix}${path.extname(file.originalname)}`
-    );
+    cb(null, `${uniqueSuffix}${path.extname(file.originalname)}`);
   },
 });
 
 const upload = multer({
   storage,
   limits: {
-    fileSize: 2 * 1024 * 1024, // 2 MB
+    fileSize: 200 * 1024 * 1024, // 200 MB
   },
   fileFilter: (req, file, cb) => {
-    if (!file.mimetype.startsWith("image/")) {
-      return cb(new Error("Only images are allowed"));
+    if (
+      file.mimetype.startsWith("image/") ||
+      file.mimetype.startsWith("video/")
+    ) {
+      cb(null, true);
+    } else {
+      cb(new Error("Only images and videos are allowed"));
     }
-
-    cb(null, true);
   },
 });
 

@@ -10,7 +10,7 @@ export default function MessageInput({
   handleSend,
   selectionMode,
 }) {
-  const { selectedChat, setSelectedImages } = useChatStore();
+  const { selectedChat, setSelectedFiles } = useChatStore();
   const otherUserId = selectedChat.user._id;
 
   const typingTimeoutRef = useRef(null);
@@ -92,9 +92,9 @@ export default function MessageInput({
     };
   }, [conversationId]);
 
-  const handleSelectedImages = (e) => {
+  const handleSelectedFiles = (e) => {
     const file = Array.from(e.target.files);
-    setSelectedImages(file);
+    setSelectedFiles(file);
   };
 
   if (selectionMode) return null;
@@ -108,9 +108,9 @@ export default function MessageInput({
         id="media-input"
         type="file"
         multiple
-        accept="image/*"
+        accept="image/*,video/*"
         hidden
-        onChange={handleSelectedImages}
+        onChange={handleSelectedFiles}
       />
 
       <input

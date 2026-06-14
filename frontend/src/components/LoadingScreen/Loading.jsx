@@ -1,6 +1,6 @@
 function Loading({ message }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0b141a]">
+    <div className="absolute inset-0 z-50 flex items-center justify-center bg-[#0b141a]">
       <div className="flex flex-col items-center gap-4">
         {/* Spinner */}
         <div className="relative h-14 w-14">
