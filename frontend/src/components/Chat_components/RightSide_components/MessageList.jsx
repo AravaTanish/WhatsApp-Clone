@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import useUserStore from "../../../store/userStore.js";
 import DeleteModal from "./DeleteModal.jsx";
 import SelectionBar from "./SelectionBar.jsx";
+import MessageContent from "./MessageContent";
 import { IoCheckmark, IoCheckmarkDone } from "react-icons/io5";
-import { FiArrowLeft } from "react-icons/fi";
 import useChatStore from "../../../store/chatStore.js";
 import socket from "../../../socket/socket.js";
 
@@ -30,7 +30,6 @@ export default function MessageList({
 
   const [selectedMessages, setSelectedMessages] = useState([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [fullscreenImage, setFullscreenImage] = useState(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -276,52 +275,7 @@ export default function MessageList({
                       : "bg-[#1f2c33] rounded-bl-sm"
                   }`}
                 >
-                  {msg.deletedForEveryone ? (
-                    <p>
-                      {msg.sender === user.id
-                        ? "You deleted this message"
-                        : "This message was deleted"}
-                    </p>
-                  ) : (
-                    <>
-                      {msg.contentType === "text" && <p>{msg.text}</p>}
-
-                      {msg.contentType === "image" && (
-                        <img
-                          src={msg.mediaUrl}
-                          alt="Image"
-                          className="max-w-[250px] rounded-lg object-cover cursor-pointer"
-                          onClick={() => setFullscreenImage(msg.mediaUrl)}
-                        />
-                      )}
-
-                      {msg.contentType === "video" && (
-                        <video
-                          src={msg.mediaUrl}
-                          controls
-                          className="max-w-[250px] rounded-lg"
-                        />
-                      )}
-
-                      {fullscreenImage && (
-                        <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
-                          {/* Back button */}
-                          <button
-                            className="absolute top-5 left-5 text-white text-3xl font-bold"
-                            onClick={() => setFullscreenImage(null)}
-                          >
-                            <FiArrowLeft />
-                          </button>
-
-                          <img
-                            src={fullscreenImage}
-                            alt="Fullscreen"
-                            className="max-h-screen max-w-screen object-contain"
-                          />
-                        </div>
-                      )}
-                    </>
-                  )}
+                  <MessageContent msg={msg} user={user} />
 
                   <div className="flex items-center justify-end gap-1 text-[10px] mt-1 opacity-70">
                     <span>{time}</span>

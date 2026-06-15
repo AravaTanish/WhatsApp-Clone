@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { BsSendFill } from "react-icons/bs";
 import { FaPlus } from "react-icons/fa6";
+import { TbCameraPlus } from "react-icons/tb";
 import useChatStore from "../../../store/chatStore.js";
 import socket from "../../../socket/socket.js";
 

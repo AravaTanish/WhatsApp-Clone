@@ -9,7 +9,7 @@ import {
   uploadImagesToCloudinary,
   uploadVideosToCloudinary,
 } from "../utils/uploadToCloudinary.js";
-import { compressImages } from "../utils/compressImages.js";
+import { compressImages, compressVideos } from "../utils/compressMedia.js";
 import { deleteFiles } from "../utils/deleteFiles.js";
 
 export const fetchMessages = asyncHandler(async (req, res) => {
@@ -46,6 +46,7 @@ export const sendMessage = asyncHandler(async (req, res) => {
   const imageFiles = files.filter((file) => file.mimetype.startsWith("image/"));
   const videoFiles = files.filter((file) => file.mimetype.startsWith("video/"));
   const compressedImages = await compressImages(imageFiles);
+  const compressedVideos = await compressVideos(videoFiles);
 
   let conversation;
   if (!conversationId || conversationId === "") {
@@ -74,13 +75,13 @@ export const sendMessage = asyncHandler(async (req, res) => {
   );
 
   const videoUrls = await uploadVideosToCloudinary(
-    videoFiles,
+    compressedVideos,
     `Conversation:${conversation._id}/media/videos`,
   );
 
   const filesToDelete = [
     ...compressedImages.flatMap((file) => [file.path, file.originalPath]),
-    ...videoFiles.map((file) => file.path),
+    ...compressedVideos.flatMap((file) => [file.path, file.originalPath]),
   ];
 
   await deleteFiles(filesToDelete);
