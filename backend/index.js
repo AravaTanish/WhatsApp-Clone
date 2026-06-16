@@ -19,6 +19,14 @@ import globalErrorMiddleware from "./middlewares/globalError.middleware.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 
+import sharp from "sharp";
+
+sharp.cache({
+  memory: 0,
+  files: 0,
+  items: 0,
+});
+
 const app = express();
 const server = http.createServer(app);
 

@@ -32,7 +32,7 @@ export const fetchMessages = asyncHandler(async (req, res) => {
 export const sendMessage = asyncHandler(async (req, res) => {
   const files = req.files || [];
   if (files.length > 10) {
-    throw new AppError("More than 10 images", 400);
+    throw new AppError("You annot send more than 10 files at a time", 400);
   }
 
   const { messageContent, conversationId } = req.body;
@@ -45,6 +45,11 @@ export const sendMessage = asyncHandler(async (req, res) => {
 
   const imageFiles = files.filter((file) => file.mimetype.startsWith("image/"));
   const videoFiles = files.filter((file) => file.mimetype.startsWith("video/"));
+
+  if (videoFiles.length > 2) {
+    throw new AppError("You cannot send more than 2 videos at a time", 400);
+  }
+  
   const compressedImages = await compressImages(imageFiles);
   const compressedVideos = await compressVideos(videoFiles);
 
